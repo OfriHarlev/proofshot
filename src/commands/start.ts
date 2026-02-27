@@ -47,7 +47,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
 
   // Paths for artifacts (all inside session subfolder)
   const videoPath = path.join(sessionDir, `session.webm`);
-  const serverErrorLog = path.join(sessionDir, 'server-errors.log');
+  const serverErrorLog = path.join(sessionDir, 'server.log');
 
   // Step 1: Start dev server with error capture
   let serverResult;

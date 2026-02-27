@@ -7,6 +7,7 @@ import { closeBrowser, getConsoleErrors, getConsoleOutput } from '../browser/ses
 import { stopRecording } from '../browser/capture.js';
 import { loadSession, clearSession } from '../session/state.js';
 import { writeViewer } from '../artifacts/viewer.js';
+import { extractServerErrors } from '../utils/error-patterns.js';
 import { loadSessionLog } from './exec.js';
 
 interface StopOptions {
@@ -43,6 +44,11 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     // Browser may already be closed
   }
 
+  // Write console output to file (before closing browser)
+  if (consoleOutput.trim()) {
+    fs.writeFileSync(path.join(session.sessionDir, 'console-output.log'), consoleOutput);
+  }
+
   // Step 2: Stop recording
   console.log(chalk.dim('Stopping recording...'));
   stopRecording();
@@ -53,10 +59,10 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     closeBrowser();
   }
 
-  // Step 4: Read server error log
-  let serverErrors = '';
+  // Step 4: Read server log
+  let serverLog = '';
   if (fs.existsSync(session.serverErrorLog)) {
-    serverErrors = fs.readFileSync(session.serverErrorLog, 'utf-8');
+    serverLog = fs.readFileSync(session.serverErrorLog, 'utf-8');
   }
 
   // Use session subfolder for all artifacts
@@ -80,10 +86,8 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     .filter((l) => l.trim() && l.trim() !== 'No errors');
   const consoleErrorCount = consoleErrorLines.length > 0 && consoleErrors.trim() !== '' ? consoleErrorLines.length : 0;
 
-  // Extract actual errors from server log (lines containing "error", "Error", "ERR", stack traces)
-  const serverErrorLines = serverErrors
-    .split('\n')
-    .filter((l) => /error|ERR|Error|ENOENT|EACCES|TypeError|ReferenceError|SyntaxError|at\s+/.test(l));
+  // Extract errors from server log using multi-language patterns
+  const serverErrorLines = extractServerErrors(serverLog);
   const serverErrorCount = serverErrorLines.length;
 
   // Step 7: Generate SUMMARY.md
@@ -96,7 +100,7 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     screenshots,
     consoleErrors,
     consoleErrorCount,
-    serverErrors,
+    serverLog,
     serverErrorCount,
     durationSec,
     outputDir: sessionDir,
@@ -190,7 +194,7 @@ interface SummaryData {
   screenshots: string[];
   consoleErrors: string;
   consoleErrorCount: number;
-  serverErrors: string;
+  serverLog: string;
   serverErrorCount: number;
   durationSec: number;
   outputDir: string;
@@ -252,9 +256,9 @@ Full session recording: [${relativeVideo}](./${relativeVideo}) (${data.durationS
   if (data.serverErrorCount === 0) {
     md += `No server errors detected.\n\n`;
   } else {
-    md += `${data.serverErrorCount} error(s) detected:\n\n\`\`\`\n${data.serverErrors.slice(0, 5000)}\n\`\`\`\n\n`;
-    if (data.serverErrors.length > 5000) {
-      md += `_(truncated — see server-errors.log for full output)_\n\n`;
+    md += `${data.serverErrorCount} error(s) detected:\n\n\`\`\`\n${data.serverLog.slice(0, 5000)}\n\`\`\`\n\n`;
+    if (data.serverLog.length > 5000) {
+      md += `_(truncated — see server.log for full output)_\n\n`;
     }
   }
 
