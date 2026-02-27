@@ -59,7 +59,7 @@
           <span>Email notifications</span>
           <small>Receive updates about your account activity</small>
         </div>
-        <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        <div class="switch on" role="switch" tabindex="0" aria-checked="true" aria-label="Email notifications" onclick="toggleSwitch(this)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSwitch(this)}"></div>
       </div>
 
       <div class="toggle">
@@ -67,7 +67,7 @@
           <span>Weekly digest</span>
           <small>Summary of your metrics every Monday</small>
         </div>
-        <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        <div class="switch on" role="switch" tabindex="0" aria-checked="true" aria-label="Weekly digest" onclick="toggleSwitch(this)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSwitch(this)}"></div>
       </div>
 
       <div class="toggle">
@@ -75,7 +75,7 @@
           <span>Marketing emails</span>
           <small>Product updates and feature announcements</small>
         </div>
-        <div class="switch" onclick="this.classList.toggle('on')"></div>
+        <div class="switch" role="switch" tabindex="0" aria-checked="false" aria-label="Marketing emails" onclick="toggleSwitch(this)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSwitch(this)}"></div>
       </div>
 
       <div class="toggle">
@@ -83,7 +83,7 @@
           <span>SMS alerts</span>
           <small>Critical alerts sent to your phone</small>
         </div>
-        <div class="switch" onclick="this.classList.toggle('on')"></div>
+        <div class="switch" role="switch" tabindex="0" aria-checked="false" aria-label="SMS alerts" onclick="toggleSwitch(this)" onkeydown="if(event.key===' '||event.key==='Enter'){event.preventDefault();toggleSwitch(this)}"></div>
       </div>
     </div>
 
@@ -111,5 +111,11 @@
   <footer>
     &copy; 2026 Acme SaaS. All rights reserved.
   </footer>
+  <script>
+    function toggleSwitch(el) {
+      el.classList.toggle('on');
+      el.setAttribute('aria-checked', el.classList.contains('on'));
+    }
+  </script>
 </body>
 </html>
