@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { execSync } from 'child_process';
 import chalk from 'chalk';
 import { loadConfig } from '../utils/config.js';
 import { closeBrowser, getConsoleErrors, getConsoleOutput } from '../browser/session.js';
@@ -60,6 +61,11 @@ export async function stopCommand(options: StopOptions): Promise<void> {
   const screenshots = fs.existsSync(outputDir)
     ? fs.readdirSync(outputDir).filter((f) => f.endsWith('.png'))
     : [];
+
+  // Step 5.5: Trim video dead time
+  if (fs.existsSync(session.videoPath) && screenshots.length > 0) {
+    trimVideo(session.videoPath, screenshots, outputDir, startTime);
+  }
 
   // Step 6: Count errors
   const consoleErrorLines = consoleErrors
@@ -222,4 +228,80 @@ Full session recording: [${relativeVideo}](./${relativeVideo}) (${data.durationS
 `;
 
   return md;
+}
+
+/**
+ * Trim dead time from the beginning and end of the session video.
+ * Uses screenshot file creation timestamps to find the active portion,
+ * then trims with ffmpeg if available.
+ */
+function trimVideo(
+  videoPath: string,
+  screenshots: string[],
+  outputDir: string,
+  recordingStartMs: number,
+): void {
+  // Get file birth times for all screenshots
+  const timestamps = screenshots
+    .map((f) => {
+      try {
+        return fs.statSync(path.join(outputDir, f)).birthtimeMs;
+      } catch {
+        return null;
+      }
+    })
+    .filter((t): t is number => t !== null);
+
+  if (timestamps.length === 0) return;
+
+  const firstActionMs = Math.min(...timestamps);
+  const lastActionMs = Math.max(...timestamps);
+
+  // Buffer: 2s for multiple screenshots, 5s for a single screenshot
+  const buffer = timestamps.length === 1 ? 5 : 2;
+
+  const trimStartSec = Math.max(0, (firstActionMs - recordingStartMs) / 1000 - buffer);
+  const trimEndSec = (lastActionMs - recordingStartMs) / 1000 + buffer;
+
+  // Don't trim very short videos
+  if (trimEndSec - trimStartSec < 5) return;
+
+  // Check if ffmpeg is available
+  try {
+    execSync('ffmpeg -version', { stdio: 'pipe' });
+  } catch {
+    console.log(chalk.dim('Tip: Install ffmpeg to auto-trim dead time from videos.'));
+    return;
+  }
+
+  // Trim the video
+  const dir = path.dirname(videoPath);
+  const ext = path.extname(videoPath);
+  const base = path.basename(videoPath, ext);
+  const rawPath = path.join(dir, `${base}-raw${ext}`);
+
+  try {
+    // Rename original to -raw
+    fs.renameSync(videoPath, rawPath);
+
+    execSync(
+      `ffmpeg -i "${rawPath}" -ss ${trimStartSec.toFixed(2)} -to ${trimEndSec.toFixed(2)} -c copy "${videoPath}"`,
+      { stdio: 'pipe', timeout: 60000 },
+    );
+
+    // Remove raw file on success
+    fs.unlinkSync(rawPath);
+    const trimmedDuration = Math.round(trimEndSec - trimStartSec);
+    console.log(chalk.dim(`Trimmed video to ${trimmedDuration}s (removed dead time)`));
+  } catch {
+    // Restore original if trimming failed
+    if (fs.existsSync(rawPath)) {
+      if (!fs.existsSync(videoPath)) {
+        fs.renameSync(rawPath, videoPath);
+      } else {
+        fs.unlinkSync(rawPath);
+      }
+    }
+    console.log(chalk.dim('Video trimming failed, keeping original'));
+  }
 }
