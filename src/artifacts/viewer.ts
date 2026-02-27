@@ -6,7 +6,7 @@ interface ViewerData {
   description: string | null;
   framework: string;
   durationSec: number;
-  videoFilename: string;
+  videoFilename: string | null;
   entries: SessionLogEntry[];
   consoleErrorCount: number;
   serverErrorCount: number;
@@ -95,6 +95,12 @@ export function generateViewer(data: ViewerData): string {
       ? '<p class="no-errors">No server errors detected.</p>'
       : `<p class="has-errors">${data.serverErrorCount} error(s) detected — see SUMMARY.md for details.</p>`;
 
+  const hasVideo = !!data.videoFilename;
+
+  const videoPanelHtml = hasVideo
+    ? `<video src="./${escapeHtml(data.videoFilename!)}" controls></video>`
+    : `<div class="no-video"><p>No video recorded</p><p class="no-video-hint">Screenshots are available in the timeline</p></div>`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,6 +161,25 @@ export function generateViewer(data: ViewerData): string {
       max-height: 100%;
       border-radius: 8px;
       background: #000;
+    }
+
+    .no-video {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 300px;
+      border: 1px dashed #30363d;
+      border-radius: 8px;
+      color: #484f58;
+      font-size: 15px;
+    }
+
+    .no-video-hint {
+      font-size: 12px;
+      margin-top: 8px;
+      color: #30363d;
     }
 
     .timeline-panel {
@@ -310,7 +335,7 @@ export function generateViewer(data: ViewerData): string {
   </div>
   <div class="viewer">
     <div class="video-panel">
-      <video src="./${escapeHtml(data.videoFilename)}" controls></video>
+      ${videoPanelHtml}
     </div>
     <div class="timeline-panel">
       <div class="timeline-header">Timeline &middot; ${data.entries.length} actions</div>
@@ -333,34 +358,38 @@ ${stepsHtml}
     const timelinePanel = document.querySelector('.timeline-panel');
 
     function seekTo(time) {
-      video.currentTime = time;
-      video.play();
+      if (video) {
+        video.currentTime = time;
+        video.play();
+      }
     }
 
-    // Highlight active step as video plays
-    video.addEventListener('timeupdate', () => {
-      const t = video.currentTime;
-      let activeStep = null;
+    // Highlight active step as video plays (only if video exists)
+    if (video) {
+      video.addEventListener('timeupdate', () => {
+        const t = video.currentTime;
+        let activeStep = null;
 
-      steps.forEach(step => {
-        const stepTime = parseFloat(step.dataset.time);
-        const nextStep = step.nextElementSibling;
-        const isLastStep = !nextStep || !nextStep.classList.contains('step');
-        const nextTime = isLastStep ? Infinity : parseFloat(nextStep.dataset.time);
-        const isActive = t >= stepTime && t < nextTime;
-        step.classList.toggle('active', isActive);
-        if (isActive) activeStep = step;
-      });
+        steps.forEach(step => {
+          const stepTime = parseFloat(step.dataset.time);
+          const nextStep = step.nextElementSibling;
+          const isLastStep = !nextStep || !nextStep.classList.contains('step');
+          const nextTime = isLastStep ? Infinity : parseFloat(nextStep.dataset.time);
+          const isActive = t >= stepTime && t < nextTime;
+          step.classList.toggle('active', isActive);
+          if (isActive) activeStep = step;
+        });
 
-      // Auto-scroll the active step into view
-      if (activeStep) {
-        const panelRect = timelinePanel.getBoundingClientRect();
-        const stepRect = activeStep.getBoundingClientRect();
-        if (stepRect.top < panelRect.top || stepRect.bottom > panelRect.bottom) {
-          activeStep.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        // Auto-scroll the active step into view
+        if (activeStep) {
+          const panelRect = timelinePanel.getBoundingClientRect();
+          const stepRect = activeStep.getBoundingClientRect();
+          if (stepRect.top < panelRect.top || stepRect.bottom > panelRect.bottom) {
+            activeStep.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
         }
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>`;

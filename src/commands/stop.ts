@@ -107,7 +107,7 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     description: session.description,
     framework: session.framework,
     durationSec,
-    videoFilename: path.basename(session.videoPath),
+    videoFilename: fs.existsSync(session.videoPath) ? path.basename(session.videoPath) : null,
     consoleErrorCount,
     serverErrorCount,
   });

@@ -42,6 +42,33 @@ function resolveScreenshotPath(args: string[], sessionDir: string): string[] {
 }
 
 /**
+ * Build the shell command string for agent-browser.
+ *
+ * For `eval` commands, we need to pass the JS code as a single quoted argument
+ * to prevent the shell from interpreting parentheses, brackets, etc.
+ * For other commands, simple joining is fine.
+ */
+function buildShellCommand(args: string[]): string {
+  if (args[0] === 'eval' && args.length > 1) {
+    // Join everything after 'eval' as the JS code, wrap in single quotes
+    const jsCode = args.slice(1).join(' ');
+    // Escape any single quotes in the JS code for shell safety
+    const escaped = jsCode.replace(/'/g, "'\\''");
+    return `agent-browser eval '${escaped}'`;
+  }
+
+  // For all other commands, quote each arg that contains shell-special chars
+  const quotedArgs = args.map((arg) => {
+    if (/[(){}[\]$`!#&|;<>*? "'\\]/.test(arg)) {
+      const escaped = arg.replace(/'/g, "'\\''");
+      return `'${escaped}'`;
+    }
+    return arg;
+  });
+  return `agent-browser ${quotedArgs.join(' ')}`;
+}
+
+/**
  * proofshot exec <agent-browser-args...>
  *
  * 1. Read session state to get sessionDir and startedAt
@@ -64,8 +91,6 @@ export async function execCommand(args: string[]): Promise<void> {
     resolvedArgs = resolveScreenshotPath(args, session.sessionDir);
   }
 
-  const resolvedAction = resolvedArgs.join(' ');
-
   // Log the action if a session is active
   if (session) {
     const now = new Date();
@@ -84,9 +109,12 @@ export async function execCommand(args: string[]): Promise<void> {
     fs.writeFileSync(logPath, JSON.stringify(entries, null, 2) + '\n');
   }
 
+  // Build shell command with proper quoting
+  const shellCmd = buildShellCommand(resolvedArgs);
+
   // Pass through to agent-browser
   try {
-    const result = execSync(`agent-browser ${resolvedAction}`, {
+    const result = execSync(shellCmd, {
       encoding: 'utf-8',
       timeout: 60000,
       stdio: ['pipe', 'pipe', 'pipe'],
