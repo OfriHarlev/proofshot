@@ -1,0 +1,79 @@
+# ProofShot CLI
+
+Visual verification tool for AI coding agents. Records browser sessions, captures screenshots, collects errors, and bundles proof artifacts.
+
+## Quick reference
+
+```bash
+npm run build          # Build with tsup (must run after changes)
+npm test               # Run vitest once
+npm run dev            # Watch mode build
+```
+
+## Architecture
+
+```
+src/
+├── cli.ts                  # Commander.js command registration
+├── commands/               # One file per CLI command (start, stop, exec, init, diff, pr, clean)
+├── browser/                # agent-browser CLI wrappers (session, capture, interact, navigate)
+├── server/                 # Dev server detection, startup, port waiting
+├── session/state.ts        # .session.json lifecycle (save/load/clear)
+├── artifacts/              # Output generation (viewer.html, SUMMARY.md, PR format)
+└── utils/                  # Config, exec helpers, port utils, error patterns
+```
+
+**Entry point:** `bin/proofshot.ts` → `src/cli.ts` → `src/commands/*.ts`
+
+## Key conventions
+
+- **ESM only** — all imports MUST use `.js` extensions: `import { foo } from '../utils/config.js'`
+- **Build before test** — CLI runs from `dist/`, always `npm run build` after code changes
+- **agent-browser** — external peer dependency (Rust CLI + Node daemon). All browser commands go through `ab()` in `utils/exec.ts` which calls `agent-browser <command>` via `execSync`
+- **Session state** — `start` writes `.session.json`, `exec` and `stop` read it. `stop` clears it. Don't assume session exists without checking
+- **Per-session subfolders** — artifacts go in `proofshot-artifacts/YYYY-MM-DD_HH-mm-ss_slug/`
+
+## Command lifecycle
+
+1. `proofshot start` — spawns dev server, opens browser, starts recording, saves session state
+2. `proofshot exec <args>` — logs action to `session-log.json`, forwards to `agent-browser`
+3. `proofshot stop` — collects errors, stops recording, trims video, generates SUMMARY.md + viewer.html, clears session
+
+## Adding a new command
+
+1. Create `src/commands/mycommand.ts` with `export async function mycommandCommand(options): Promise<void>`
+2. Register in `src/cli.ts` with `program.command('mycommand')...`
+3. Export from `src/index.ts` if it should be part of the public API
+
+## Adding error patterns for a new language
+
+Edit `src/utils/error-patterns.ts` — add a new entry to the `PATTERNS` array:
+
+```typescript
+{
+  name: 'Swift',
+  patterns: [
+    /Fatal error:/,
+    /Thread \d+: signal SIGABRT/,
+  ],
+},
+```
+
+## Session artifacts
+
+| File | Created by | Contains |
+|---|---|---|
+| `session.webm` | `start` | Video recording (Playwright screencast) |
+| `session-log.json` | `exec` (appended each call) | Action timeline with relative timestamps |
+| `server.log` | `start` (piped stdout+stderr) | All dev server output |
+| `console-output.log` | `stop` | Browser console output |
+| `step-*.png` | `exec screenshot` | Screenshots at key moments |
+| `SUMMARY.md` | `stop` | Markdown report with errors and screenshots |
+| `viewer.html` | `stop` | Standalone HTML viewer with video + timeline |
+
+## Gotchas
+
+- `proofshot exec` has special shell quoting logic (`buildShellCommand` in exec.ts) — `eval` commands get single-quoted, args with special chars get auto-quoted
+- Video trimming adjusts session-log.json timestamps to match the trimmed video (see `trimOffsetSec` in stop.ts)
+- Server log capture only works when proofshot starts the server itself — if the port is already occupied, we skip spawning and get no server logs
+- The `consoleErrors`/`consoleOutput` from agent-browser are point-in-time snapshots collected at stop time
