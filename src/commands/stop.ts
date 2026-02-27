@@ -68,9 +68,10 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     : [];
 
   // Step 5.5: Trim video dead time
+  const sessionLog = loadSessionLog(sessionDir);
+  let trimOffsetSec = 0;
   if (fs.existsSync(session.videoPath)) {
-    const sessionLog = loadSessionLog(sessionDir);
-    trimVideo(session.videoPath, screenshots, sessionDir, startTime, sessionLog);
+    trimOffsetSec = trimVideo(session.videoPath, screenshots, sessionDir, startTime, sessionLog);
   }
 
   // Step 6: Count errors
@@ -103,6 +104,21 @@ export async function stopCommand(options: StopOptions): Promise<void> {
   fs.writeFileSync(summaryPath, summary);
 
   // Step 7.5: Generate interactive viewer (if session log exists)
+  // Adjust session log timestamps to match the trimmed video
+  const viewerEntries =
+    trimOffsetSec > 0
+      ? sessionLog.map((e) => ({
+          ...e,
+          relativeTimeSec: parseFloat((e.relativeTimeSec - trimOffsetSec).toFixed(1)),
+        }))
+      : sessionLog;
+
+  // Write adjusted log back to disk so timestamps match the trimmed video
+  if (trimOffsetSec > 0 && viewerEntries.length > 0) {
+    const logPath = path.join(sessionDir, 'session-log.json');
+    fs.writeFileSync(logPath, JSON.stringify(viewerEntries, null, 2) + '\n');
+  }
+
   const viewerPath = writeViewer(sessionDir, {
     description: session.description,
     framework: session.framework,
@@ -110,6 +126,7 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     videoFilename: fs.existsSync(session.videoPath) ? path.basename(session.videoPath) : null,
     consoleErrorCount,
     serverErrorCount,
+    entries: viewerEntries.length > 0 ? viewerEntries : undefined,
   });
 
   // Step 8: Clear session state
@@ -266,7 +283,7 @@ function trimVideo(
   outputDir: string,
   recordingStartMs: number,
   sessionLog: import('./exec.js').SessionLogEntry[],
-): void {
+): number {
   let firstActionSec: number | null = null;
   let lastActionSec: number | null = null;
 
@@ -286,13 +303,13 @@ function trimVideo(
       })
       .filter((t): t is number => t !== null && t >= recordingStartMs);
 
-    if (timestamps.length === 0) return;
+    if (timestamps.length === 0) return 0;
 
     firstActionSec = (Math.min(...timestamps) - recordingStartMs) / 1000;
     lastActionSec = (Math.max(...timestamps) - recordingStartMs) / 1000;
   }
 
-  if (firstActionSec === null || lastActionSec === null) return;
+  if (firstActionSec === null || lastActionSec === null) return 0;
 
   const BUFFER_BEFORE = 5;
   const BUFFER_AFTER = 3;
@@ -301,14 +318,14 @@ function trimVideo(
   const trimEndSec = lastActionSec + BUFFER_AFTER;
 
   // Don't trim very short videos
-  if (trimEndSec - trimStartSec < 5) return;
+  if (trimEndSec - trimStartSec < 5) return 0;
 
   // Check if ffmpeg is available
   try {
     execSync('ffmpeg -version', { stdio: 'pipe' });
   } catch {
     console.log(chalk.dim('Tip: Install ffmpeg to auto-trim dead time from videos.'));
-    return;
+    return 0;
   }
 
   // Trim the video
@@ -330,6 +347,7 @@ function trimVideo(
     fs.unlinkSync(rawPath);
     const trimmedDuration = Math.round(trimEndSec - trimStartSec);
     console.log(chalk.dim(`Trimmed video to ${trimmedDuration}s (removed dead time)`));
+    return trimStartSec;
   } catch {
     // Restore original if trimming failed
     if (fs.existsSync(rawPath)) {
@@ -340,5 +358,6 @@ function trimVideo(
       }
     }
     console.log(chalk.dim('Video trimming failed, keeping original'));
+    return 0;
   }
 }
