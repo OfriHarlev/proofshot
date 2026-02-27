@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acme SaaS — Settings</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <span class="logo">Acme SaaS</span>
+    <a href="/">Home</a>
+    <a href="/dashboard.html">Dashboard</a>
+    <a href="/settings.html" class="active">Settings</a>
+    <a href="#" class="btn" style="margin-left: 8px;">Sign Up</a>
+  </nav>
+
+  <div class="container">
+    <h1>Settings</h1>
+    <p class="subtitle">Manage your account and preferences</p>
+
+    <div class="card" style="margin-bottom: 32px;">
+      <h2 style="font-size: 18px; margin-bottom: 24px;">Profile</h2>
+
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" value="Jane Doe" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" value="jane@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <textarea id="bio" rows="3" style="resize: vertical;">Product designer at Acme. Building tools for modern teams.</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="timezone">Timezone</label>
+        <select id="timezone">
+          <option>UTC-8 (Pacific Time)</option>
+          <option>UTC-5 (Eastern Time)</option>
+          <option selected>UTC+0 (GMT)</option>
+          <option>UTC+1 (Central European)</option>
+          <option>UTC+9 (Japan)</option>
+        </select>
+      </div>
+
+      <button class="btn">Save Profile</button>
+    </div>
+
+    <div class="card" style="margin-bottom: 32px;">
+      <h2 style="font-size: 18px; margin-bottom: 24px;">Notifications</h2>
+
+      <div class="toggle">
+        <div class="toggle-label">
+          <span>Email notifications</span>
+          <small>Receive updates about your account activity</small>
+        </div>
+        <div class="switch on" onclick="this.classList.toggle('on')"></div>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-label">
+          <span>Weekly digest</span>
+          <small>Summary of your metrics every Monday</small>
+        </div>
+        <div class="switch on" onclick="this.classList.toggle('on')"></div>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-label">
+          <span>Marketing emails</span>
+          <small>Product updates and feature announcements</small>
+        </div>
+        <div class="switch" onclick="this.classList.toggle('on')"></div>
+      </div>
+
+      <div class="toggle">
+        <div class="toggle-label">
+          <span>SMS alerts</span>
+          <small>Critical alerts sent to your phone</small>
+        </div>
+        <div class="switch" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size: 18px; margin-bottom: 24px; color: #f87171;">Danger Zone</h2>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #1e293b;">
+        <div>
+          <span style="font-size: 14px;">Export data</span><br>
+          <small style="color: #64748b; font-size: 12px;">Download all your data as a CSV</small>
+        </div>
+        <button class="btn btn-outline" style="font-size: 12px; padding: 8px 16px;">Export</button>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0;">
+        <div>
+          <span style="font-size: 14px;">Delete account</span><br>
+          <small style="color: #64748b; font-size: 12px;">Permanently delete your account and all data</small>
+        </div>
+        <button class="btn" style="background: #dc2626; font-size: 12px; padding: 8px 16px;">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 Acme SaaS. All rights reserved.
+  </footer>
+</body>
+</html>
