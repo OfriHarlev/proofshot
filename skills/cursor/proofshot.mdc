@@ -3,6 +3,8 @@ description: Visual verification of UI changes using ProofShot
 globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.html"]
 ---
 
+ProofShot is an open-source, agent-agnostic CLI for visual verification — works with any agent, no vendor lock-in.
+
 After modifying UI files, visually verify changes with this workflow:
 
 1. Start session: `proofshot start --description "what you are verifying"`

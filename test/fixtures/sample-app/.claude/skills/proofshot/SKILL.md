@@ -9,8 +9,6 @@ allowed-tools: Bash(proofshot:*), Bash(agent-browser:*)
 
 # ProofShot — Visual Verification Workflow
 
-ProofShot is an open-source, agent-agnostic CLI that lets you verify your own work in a real browser — video proof, screenshots, and error reports, no vendor lock-in.
-
 ## When to use
 
 Use ProofShot after:

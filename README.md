@@ -1,14 +1,16 @@
 # ProofShot
 
-**Give any AI coding agent eyes.**
+**The open-source, agent-agnostic CLI that gives AI coding agents eyes.**
 
-Your agent builds a feature — ProofShot records video proof it works.
+Your agent builds a feature — ProofShot records video proof it works. Three commands. Any agent. Real browser verification.
 
-Works with: Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, and any agent that runs bash.
+Works with: Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot, Windsurf, and any agent that runs shell commands.
 
-## Why?
+## Why ProofShot?
 
-AI coding agents build UI features blind. They write code but can't verify the result. ProofShot creates a **verification workflow** where the agent tests its own work in a real browser while recording video proof for the human.
+AI coding agents build UI features blind. They write code but can't verify the result. Cursor shipped video review for their cloud agents — but it's locked into Cursor's ecosystem. QA tools like TestDriver and TestZeus capture browser sessions — but they're built for test automation, not for closing the coding agent feedback loop.
+
+**ProofShot is the missing piece:** an open-source CLI that plugs into *any* AI coding agent and gives it a verification workflow — test in a real browser, record video proof, collect errors, and bundle everything for the human to review. No vendor lock-in. No cloud dependency. Just `npm install -g proofshot` and your agent can see.
 
 The human gets: a video recording showing what was tested, screenshots of key moments, and a report of any console or server errors found.
 

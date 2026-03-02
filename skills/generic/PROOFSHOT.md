@@ -1,5 +1,7 @@
 # ProofShot Visual Verification
 
+ProofShot is an open-source, agent-agnostic CLI that lets any AI coding agent verify its own work in a real browser — no vendor lock-in required.
+
 After building or modifying UI features, verify with this workflow:
 
 1. Start: `proofshot start --description "what you are verifying"`
