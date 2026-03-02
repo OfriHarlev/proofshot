@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { initCommand } from './commands/init.js';
+import { installCommand } from './commands/install.js';
 import { startCommand } from './commands/start.js';
 import { stopCommand } from './commands/stop.js';
 import { diffCommand } from './commands/diff.js';
@@ -16,12 +16,13 @@ export function createCLI(): Command {
     .version('0.1.0');
 
   program
-    .command('init')
-    .description('Create config and install skill file')
-    .option('--agent <agent>', 'Agent type: claude, codex, cursor, gemini, copilot, generic')
-    .option('--force', 'Overwrite existing config')
+    .command('install')
+    .description('Install ProofShot skills at user level for all detected AI coding tools')
+    .option('--only <tools>', 'Only install for these tools (comma-separated: claude,codex,cursor,gemini,windsurf)')
+    .option('--skip <tools>', 'Skip these tools (comma-separated)')
+    .option('--force', 'Overwrite existing skill files even if unchanged')
     .action(async (options) => {
-      await initCommand(options);
+      await installCommand(options);
     });
 
   program

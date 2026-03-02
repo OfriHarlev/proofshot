@@ -22,18 +22,10 @@ The human gets: a video recording showing what was tested, screenshots of key mo
 
 ```bash
 npm install -g proofshot
+proofshot install
 ```
 
-This also installs `agent-browser` and downloads a headless Chromium.
-
-## Setup (10 seconds)
-
-```bash
-cd your-project
-proofshot init
-```
-
-This creates a config file and installs a skill file that teaches your AI agent the verification workflow.
+The first command installs the CLI and `agent-browser` (with headless Chromium). The second detects your AI coding tools (Claude Code, Cursor, Codex, Gemini CLI, Windsurf) and installs the ProofShot skill at the user level — so it works across all your projects automatically.
 
 ## How It Works
 
@@ -60,14 +52,15 @@ The skill file teaches the agent this workflow automatically. The user just says
 
 ## Commands
 
-### `proofshot init`
+### `proofshot install`
 
-Creates config and installs skill file.
+Detects AI coding tools on your machine and installs the ProofShot skill at user level. Run once per machine.
 
 ```bash
-proofshot init
-proofshot init --agent claude    # Specify agent type
-proofshot init --force           # Overwrite existing config
+proofshot install               # Interactive: select which tools to install for
+proofshot install --only claude  # Only install for specific tools
+proofshot install --skip cursor  # Skip specific tools
+proofshot install --force        # Overwrite even if already installed
 ```
 
 ### `proofshot start`
@@ -117,32 +110,17 @@ Remove artifact files.
 proofshot clean
 ```
 
-## Config
-
-`proofshot init` creates a `proofshot.config.json`:
-
-```json
-{
-  "devServer": {
-    "port": 3000,
-    "startupTimeout": 30000
-  },
-  "output": "./proofshot-artifacts",
-  "viewport": { "width": 1280, "height": 720 },
-  "headless": true
-}
-```
-
-The dev server command is provided at runtime via `--run`, not in the config. If `--run` is omitted, ProofShot assumes the server is already running.
-
 ## Supported Agents
 
-Skill files are provided for:
+`proofshot install` detects and installs skills for:
 
-- **Claude Code** — `.claude/skills/proofshot/SKILL.md`
-- **Cursor** — `.cursor/rules/proofshot.mdc`
-- **Codex** — Appends to `AGENTS.md`
-- **Generic** — `PROOFSHOT.md` in project root
+- **Claude Code** — `~/.claude/skills/proofshot/SKILL.md`
+- **Cursor** — `~/.cursor/rules/proofshot.mdc`
+- **Codex (OpenAI)** — `~/.codex/skills/proofshot/SKILL.md`
+- **Gemini CLI** — appends to `~/.gemini/GEMINI.md`
+- **Windsurf** — appends to `~/.codeium/windsurf/memories/global_rules.md`
+
+All skills are installed at the **user level** — works across every project without per-project setup.
 
 ## Try It — Sample App
 
@@ -163,7 +141,6 @@ npm link                    # makes `proofshot` available globally
 ```bash
 cd test/fixtures/sample-app
 npm install
-proofshot init --force
 ```
 
 ### 3. Tell your AI agent to verify it
@@ -172,7 +149,7 @@ Open your AI agent (Claude Code, Cursor, etc.) in the `test/fixtures/sample-app/
 
 > Verify the Acme SaaS sample app with proofshot. Start on the homepage, check the hero section and scroll down to see the feature cards and stats. Then navigate to the Dashboard and check the metrics and activity table. Finally go to Settings, update the profile name to "John Smith" and email to "john@acme.com", toggle on the Marketing emails and SMS alerts switches, and click Save Profile. Screenshot each page and every key interaction.
 
-The agent reads the skill file installed by `proofshot init`, runs the full `start → exec → stop` workflow autonomously, and produces the proof artifacts.
+The agent reads the skill file installed by `proofshot install`, runs the full `start → exec → stop` workflow autonomously, and produces the proof artifacts.
 
 ### 4. Check the output
 
@@ -192,7 +169,7 @@ cd test/fixtures/sample-app
 bash test-proofshot.sh
 ```
 
-This runs the full lifecycle: `init → start → browser interactions → stop → pr → clean`.
+This runs the full lifecycle: `start → browser interactions → stop → pr → clean`.
 
 Built on [agent-browser](https://github.com/vercel-labs/agent-browser) by Vercel.
 

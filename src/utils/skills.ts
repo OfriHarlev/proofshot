@@ -1,50 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import chalk from 'chalk';
-import { writeConfig, configExists, type ProofShotConfig } from '../utils/config.js';
 
-interface InitOptions {
-  agent?: string;
-  force?: boolean;
-}
-
-const SKILL_FILES: Record<string, { path: string; content: () => string }> = {
-  claude: {
-    path: '.claude/skills/proofshot/SKILL.md',
-    content: () =>
-      fs.readFileSync(
-        path.join(getSkillsDir(), 'claude', 'SKILL.md'),
-        'utf-8',
-      ),
-  },
-  cursor: {
-    path: '.cursor/rules/proofshot.mdc',
-    content: () =>
-      fs.readFileSync(
-        path.join(getSkillsDir(), 'cursor', 'proofshot.mdc'),
-        'utf-8',
-      ),
-  },
-  codex: {
-    path: 'AGENTS.md',
-    content: () =>
-      fs.readFileSync(
-        path.join(getSkillsDir(), 'codex', 'AGENTS.md'),
-        'utf-8',
-      ),
-  },
-  generic: {
-    path: 'PROOFSHOT.md',
-    content: () =>
-      fs.readFileSync(
-        path.join(getSkillsDir(), 'generic', 'PROOFSHOT.md'),
-        'utf-8',
-      ),
-  },
-};
-
-function getSkillsDir(): string {
-  // Skills are shipped alongside the package
+/**
+ * Resolve the directory where bundled skill files are shipped.
+ */
+export function getSkillsDir(): string {
   return path.resolve(
     path.dirname(new URL(import.meta.url).pathname),
     '..', '..', 'skills',
@@ -52,59 +12,21 @@ function getSkillsDir(): string {
 }
 
 /**
- * Detect which agent is likely being used based on project files.
+ * Read a bundled skill file. Returns the content string, or null if not found.
  */
-function detectAgent(): string {
-  const cwd = process.cwd();
-  if (fs.existsSync(path.join(cwd, '.claude'))) return 'claude';
-  if (fs.existsSync(path.join(cwd, '.cursor'))) return 'cursor';
-  if (fs.existsSync(path.join(cwd, 'AGENTS.md'))) return 'codex';
-  return 'generic';
-}
-
-/**
- * Install the skill file for the detected/selected agent.
- */
-function installSkillFile(agent: string): string | null {
-  const skill = SKILL_FILES[agent] || SKILL_FILES.generic;
-
+export function readBundledSkill(relativePath: string): string | null {
   try {
-    const content = skill.content();
-    const targetPath = path.join(process.cwd(), skill.path);
-    const targetDir = path.dirname(targetPath);
-
-    fs.mkdirSync(targetDir, { recursive: true });
-
-    // For AGENTS.md, append rather than overwrite if it exists
-    if (agent === 'codex' && fs.existsSync(targetPath)) {
-      const existing = fs.readFileSync(targetPath, 'utf-8');
-      if (!existing.includes('ProofShot')) {
-        fs.appendFileSync(targetPath, '\n\n' + content);
-      }
-    } else {
-      fs.writeFileSync(targetPath, content);
-    }
-
-    return skill.path;
+    return fs.readFileSync(path.join(getSkillsDir(), relativePath), 'utf-8');
   } catch {
-    // If skill files aren't bundled (dev mode), create inline
-    return createInlineSkillFile(agent);
+    return null;
   }
 }
 
-function createInlineSkillFile(agent: string): string | null {
-  const skillContent = getInlineSkillContent(agent);
-  const skill = SKILL_FILES[agent] || SKILL_FILES.generic;
-  const targetPath = path.join(process.cwd(), skill.path);
-  const targetDir = path.dirname(targetPath);
-
-  fs.mkdirSync(targetDir, { recursive: true });
-  fs.writeFileSync(targetPath, skillContent);
-  return skill.path;
-}
-
-function getInlineSkillContent(agent: string): string {
-  if (agent === 'claude') {
+/**
+ * Generate inline skill content as a fallback when bundled files aren't available.
+ */
+export function getInlineSkillContent(agent: string): string {
+  if (agent === 'claude' || agent === 'codex') {
     return `---
 name: proofshot
 description: Visual verification of UI features. Use after building or modifying any
@@ -190,7 +112,7 @@ Key proofshot exec commands:
 `;
   }
 
-  // Generic / codex
+  // Generic / gemini / windsurf
   return `# ProofShot Visual Verification
 
 After building or modifying UI features, verify with this workflow:
@@ -208,53 +130,4 @@ Key proofshot exec commands:
 
 Artifacts saved to ./proofshot-artifacts/ including video, screenshots, errors, and summary.
 `;
-}
-
-export async function initCommand(options: InitOptions): Promise<void> {
-  const cwd = process.cwd();
-
-  // Check for existing config
-  if (configExists() && !options.force) {
-    console.log(
-      chalk.yellow('proofshot.config.json already exists. Use --force to overwrite.'),
-    );
-    return;
-  }
-
-  // Build config with defaults
-  const config: ProofShotConfig = {
-    devServer: {
-      port: 3000,
-      startupTimeout: 30000,
-    },
-    output: './proofshot-artifacts',
-    defaultPages: ['/'],
-    viewport: { width: 1280, height: 720 },
-    headless: true,
-  };
-
-  // Write config
-  const configPath = writeConfig(config, cwd);
-  console.log(
-    chalk.green('✓') +
-      ` Created ${chalk.bold('proofshot.config.json')}`,
-  );
-
-  // Detect/select agent and install skill file
-  const agent = options.agent || detectAgent();
-  const skillPath = installSkillFile(agent);
-  if (skillPath) {
-    console.log(
-      chalk.green('✓') +
-        ` Installed skill file: ${chalk.bold(skillPath)}` +
-        ` (${agent})`,
-    );
-  }
-
-  console.log('');
-  console.log(chalk.dim('Ready! Tell your AI agent:'));
-  console.log(chalk.white('  "Verify the changes visually with proofshot"'));
-  console.log('');
-  console.log(chalk.dim('Or run directly:'));
-  console.log(chalk.white('  proofshot verify --pages "/"'));
 }
