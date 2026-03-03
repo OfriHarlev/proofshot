@@ -284,48 +284,41 @@
       100% { opacity: 0 }
     }
 
-    /* ── KANBAN BOARD LAYOUT ── */
-    .kb { padding: 10px; height: 100%; display: flex; flex-direction: column }
-    .kb-top {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px;
+    /* ── WIREFRAME APP ── */
+    .wf { padding: 12px; height: 100%; display: flex; flex-direction: column }
+    .wf-nav {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid #1e293b;
     }
-    .kb-title { font-size: 12px; font-weight: 700; color: #e5e7eb }
-    .kb-add {
+    .wf-logo { width: 14px; height: 14px; border-radius: 3px; background: #6366F1 }
+    .wf-nav-line { height: 6px; border-radius: 3px; background: #1e293b }
+    .wf-btn {
       font-size: 9px; font-weight: 600; color: #fff;
       background: #6366F1; border-radius: 4px;
-      padding: 3px 10px; cursor: default;
+      padding: 3px 10px; cursor: default; margin-left: auto;
+      white-space: nowrap;
     }
-    .kb-cols { display: flex; gap: 8px; flex: 1; min-height: 0 }
-    .kb-col { flex: 1; display: flex; flex-direction: column; gap: 6px }
-    .kb-col-head {
-      font-size: 9px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.5px; padding: 4px 6px; border-radius: 4px;
-      display: flex; align-items: center; gap: 4px;
+    .wf-body { flex: 1; display: flex; flex-direction: column; gap: 8px }
+    .wf-row { display: flex; gap: 8px }
+    .wf-block {
+      background: #1e293b; border-radius: 4px;
+      height: 28px;
     }
-    .kb-col-head.todo { color: #60a5fa; background: rgba(96,165,250,0.1) }
-    .kb-col-head.prog { color: #f89b4b; background: rgba(248,155,75,0.1) }
-    .kb-col-head.done { color: #3fb950; background: rgba(63,185,80,0.1) }
-    .kb-card {
-      background: #1f2937; border: 1px solid #374151;
-      border-radius: 5px; padding: 7px 8px;
-      font-size: 10px; color: #d1d5db; line-height: 1.3;
+    .wf-block.w1 { flex: 1 }
+    .wf-block.w2 { flex: 2 }
+    .wf-block.w3 { flex: 3 }
+    .wf-block.h-sm { height: 20px }
+    .wf-block.h-lg { height: 36px }
+    .wf-block.accent {
+      background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.3);
     }
-    .kb-card-title { font-weight: 600; margin-bottom: 3px; color: #f0f6fc }
-    .kb-card-meta {
-      display: flex; align-items: center; gap: 4px;
-      font-size: 8px; color: #6b7280;
+    .wf-block.new-item {
+      border: 1px solid #6366F1; background: rgba(99,102,241,0.08);
+      animation: wf-glow 16s ease-in-out infinite;
     }
-    .kb-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0 }
-    .kb-dot.urgent { background: #f85149 }
-    .kb-dot.high { background: #f89b4b }
-    .kb-dot.med { background: #60a5fa }
-    .kb-dot.low { background: #3fb950 }
-    .kb-card.new-card {
-      border-color: #6366F1; background: rgba(99,102,241,0.08);
-      animation: card-glow 16s ease-in-out infinite;
-    }
-    @keyframes card-glow {
+    @keyframes wf-glow {
       0%,64% { box-shadow: none }
       68% { box-shadow: 0 0 12px rgba(99,102,241,0.3) }
       85% { box-shadow: 0 0 4px rgba(99,102,241,0.1) }
@@ -339,7 +332,7 @@
       display: flex; align-items: center; justify-content: center;
     }
     .modal-card {
-      width: 240px; background: #1e293b;
+      width: 220px; background: #1e293b;
       border: 1px solid #374151; border-radius: 8px;
       padding: 14px; transform: translateY(8px);
       animation: modal-slide 16s ease-in-out infinite;
@@ -352,38 +345,34 @@
       100% { transform: translateY(8px); opacity: 0 }
     }
     .modal-title {
-      font-size: 12px; font-weight: 700; color: #f0f6fc;
+      font-size: 11px; font-weight: 700; color: #f0f6fc;
       margin-bottom: 12px;
     }
     .modal-field { margin-bottom: 8px }
     .modal-label {
-      font-size: 9px; font-weight: 600; color: #8b949e;
+      font-size: 8px; font-weight: 600; color: #6b7280;
       text-transform: uppercase; letter-spacing: 0.3px;
       margin-bottom: 3px;
     }
     .modal-input {
-      width: 100%; height: 26px;
+      width: 100%; height: 24px;
       background: #111827; border: 1px solid #374151;
       border-radius: 4px; position: relative; overflow: hidden;
     }
     .modal-input-text {
       position: absolute; inset: 0;
       display: flex; align-items: center;
-      padding: 0 8px; font-family: var(--mono); font-size: 10px;
+      padding: 0 8px; font-family: var(--mono); font-size: 9px;
       color: #e5e7eb; opacity: 0;
     }
     /* Staggered fill animations */
     .modal-field:nth-child(2) .modal-input-text { animation: mfill1 16s ease-in-out infinite }
     .modal-field:nth-child(3) .modal-input-text { animation: mfill2 16s ease-in-out infinite }
-    .modal-field:nth-child(4) .modal-input-text { animation: mfill3 16s ease-in-out infinite }
     @keyframes mfill1 {
       0%,37% { opacity: 0 } 40%,60% { opacity: 1 } 63%,100% { opacity: 0 }
     }
     @keyframes mfill2 {
       0%,42% { opacity: 0 } 45%,60% { opacity: 1 } 63%,100% { opacity: 0 }
-    }
-    @keyframes mfill3 {
-      0%,47% { opacity: 0 } 50%,60% { opacity: 1 } 63%,100% { opacity: 0 }
     }
     .modal-select {
       display: flex; gap: 4px; margin-top: 2px;
@@ -393,18 +382,18 @@
       border-radius: 3px; color: #fff; opacity: 0.3;
     }
     .modal-tag.active { opacity: 1 }
-    .modal-tag.urg { background: #dc2626 }
-    .modal-tag.hi { background: #ea580c }
-    .modal-tag.mid { background: #2563eb }
+    .modal-tag.t1 { background: #dc2626 }
+    .modal-tag.t2 { background: #ea580c }
+    .modal-tag.t3 { background: #2563eb }
     .modal-tag.selected-anim {
       animation: tag-select 16s ease-in-out infinite;
     }
     @keyframes tag-select { 0%,47% { opacity: 0.3 } 50%,60% { opacity: 1 } 63%,100% { opacity: 0.3 } }
     .modal-btn-row { display: flex; justify-content: flex-end; margin-top: 10px }
     .modal-btn {
-      font-size: 10px; font-weight: 600; color: #fff;
+      font-size: 9px; font-weight: 600; color: #fff;
       background: #6366F1; border-radius: 5px;
-      padding: 5px 14px; position: relative; overflow: hidden;
+      padding: 4px 12px; position: relative; overflow: hidden;
     }
     .modal-btn::after {
       content: ''; position: absolute; inset: 0;
@@ -625,7 +614,7 @@
     .demo-paused .modal-tag.selected-anim,
     .demo-paused .modal-btn::after,
     .demo-paused .scroll-anim,
-    .demo-paused .kb-card.new-card,
+    .demo-paused .wf-block.new-item,
     .demo-paused .demo-step { animation: none !important }
     .demo-restart * { animation: none !important }
 
@@ -847,93 +836,75 @@
               <div class="mock-url">localhost:3000/board</div>
             </div>
             <div class="mock-content">
-              <!-- SCREEN 1: Kanban board -->
+              <!-- SCREEN 1: Wireframe app -->
               <div class="mock-screen s-board">
-                <div class="kb">
-                  <div class="kb-top">
-                    <div class="kb-title">Sprint 14</div>
-                    <div class="kb-add">+ New task</div>
+                <div class="wf">
+                  <div class="wf-nav">
+                    <div class="wf-logo"></div>
+                    <div class="wf-nav-line" style="width:40px"></div>
+                    <div class="wf-nav-line" style="width:30px"></div>
+                    <div class="wf-btn">+ Add</div>
                   </div>
-                  <div class="kb-cols">
-                    <div class="kb-col">
-                      <div class="kb-col-head todo">&#x25CF; To Do <span style="opacity:.5;margin-left:auto">3</span></div>
-                      <div class="kb-card"><div class="kb-card-title">Fix auth redirect loop</div><div class="kb-card-meta"><span class="kb-dot urgent"></span>Urgent</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Add CSV export</div><div class="kb-card-meta"><span class="kb-dot med"></span>Medium</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Update onboarding copy</div><div class="kb-card-meta"><span class="kb-dot low"></span>Low</div></div>
-                    </div>
-                    <div class="kb-col">
-                      <div class="kb-col-head prog">&#x25CF; In Progress <span style="opacity:.5;margin-left:auto">2</span></div>
-                      <div class="kb-card"><div class="kb-card-title">Dark mode toggle</div><div class="kb-card-meta"><span class="kb-dot high"></span>High</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Stripe webhook handler</div><div class="kb-card-meta"><span class="kb-dot high"></span>High</div></div>
-                    </div>
-                    <div class="kb-col">
-                      <div class="kb-col-head done">&#x25CF; Done <span style="opacity:.5;margin-left:auto">2</span></div>
-                      <div class="kb-card"><div class="kb-card-title">SSO integration</div><div class="kb-card-meta"><span class="kb-dot med"></span>Medium</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Rate limiter middleware</div><div class="kb-card-meta"><span class="kb-dot high"></span>High</div></div>
-                    </div>
+                  <div class="wf-body">
+                    <div class="wf-row"><div class="wf-block w3"></div><div class="wf-block w1"></div></div>
+                    <div class="wf-row"><div class="wf-block w2 h-lg"></div></div>
+                    <div class="wf-row"><div class="wf-block w1"></div><div class="wf-block w1"></div><div class="wf-block w1"></div></div>
+                    <div class="wf-row"><div class="wf-block w2 h-sm"></div><div class="wf-block w1 h-sm"></div></div>
+                    <div class="wf-row"><div class="wf-block w1 h-lg"></div><div class="wf-block w2"></div></div>
                   </div>
                 </div>
               </div>
 
-              <!-- SCREEN 2: Modal over dimmed board -->
+              <!-- SCREEN 2: Modal over dimmed wireframe -->
               <div class="mock-screen s-modal">
                 <div class="modal-backdrop">
                   <div class="modal-card">
-                    <div class="modal-title">New Task</div>
+                    <div class="modal-title">New item</div>
                     <div class="modal-field">
-                      <div class="modal-label">Title</div>
-                      <div class="modal-input"><div class="modal-input-text">Ship dark mode to prod</div></div>
+                      <div class="modal-label">Name</div>
+                      <div class="modal-input"><div class="modal-input-text">Enable dark mode</div></div>
                     </div>
                     <div class="modal-field">
-                      <div class="modal-label">Assignee</div>
+                      <div class="modal-label">Owner</div>
                       <div class="modal-input"><div class="modal-input-text">@emma</div></div>
                     </div>
                     <div class="modal-field">
                       <div class="modal-label">Priority</div>
                       <div class="modal-select">
-                        <span class="modal-tag urg">Urgent</span>
-                        <span class="modal-tag hi selected-anim">High</span>
-                        <span class="modal-tag mid">Medium</span>
+                        <span class="modal-tag t1">P0</span>
+                        <span class="modal-tag t2 selected-anim">P1</span>
+                        <span class="modal-tag t3">P2</span>
                       </div>
                     </div>
-                    <div class="modal-btn-row"><div class="modal-btn">Create task</div></div>
+                    <div class="modal-btn-row"><div class="modal-btn">Create</div></div>
                   </div>
                 </div>
               </div>
 
-              <!-- SCREEN 3: Updated board (scrolled, with new card) -->
+              <!-- SCREEN 3: Wireframe with new item added -->
               <div class="mock-screen s-result">
-                <div class="kb scroll-anim">
-                  <div class="kb-top">
-                    <div class="kb-title">Sprint 14</div>
-                    <div class="kb-add">+ New task</div>
+                <div class="wf scroll-anim">
+                  <div class="wf-nav">
+                    <div class="wf-logo"></div>
+                    <div class="wf-nav-line" style="width:40px"></div>
+                    <div class="wf-nav-line" style="width:30px"></div>
+                    <div class="wf-btn">+ Add</div>
                   </div>
-                  <div class="kb-cols">
-                    <div class="kb-col">
-                      <div class="kb-col-head todo">&#x25CF; To Do <span style="opacity:.5;margin-left:auto">4</span></div>
-                      <div class="kb-card new-card"><div class="kb-card-title">Ship dark mode to prod</div><div class="kb-card-meta"><span class="kb-dot high"></span>High &middot; @emma</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Fix auth redirect loop</div><div class="kb-card-meta"><span class="kb-dot urgent"></span>Urgent</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Add CSV export</div><div class="kb-card-meta"><span class="kb-dot med"></span>Medium</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Update onboarding copy</div><div class="kb-card-meta"><span class="kb-dot low"></span>Low</div></div>
-                    </div>
-                    <div class="kb-col">
-                      <div class="kb-col-head prog">&#x25CF; In Progress <span style="opacity:.5;margin-left:auto">2</span></div>
-                      <div class="kb-card"><div class="kb-card-title">Dark mode toggle</div><div class="kb-card-meta"><span class="kb-dot high"></span>High</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Stripe webhook handler</div><div class="kb-card-meta"><span class="kb-dot high"></span>High</div></div>
-                    </div>
-                    <div class="kb-col">
-                      <div class="kb-col-head done">&#x25CF; Done <span style="opacity:.5;margin-left:auto">2</span></div>
-                      <div class="kb-card"><div class="kb-card-title">SSO integration</div><div class="kb-card-meta"><span class="kb-dot med"></span>Medium</div></div>
-                      <div class="kb-card"><div class="kb-card-title">Rate limiter middleware</div><div class="kb-card-meta"><span class="kb-dot high"></span>High</div></div>
-                    </div>
+                  <div class="wf-body">
+                    <div class="wf-row"><div class="wf-block w3 new-item"></div><div class="wf-block w1"></div></div>
+                    <div class="wf-row"><div class="wf-block w3"></div><div class="wf-block w1"></div></div>
+                    <div class="wf-row"><div class="wf-block w2 h-lg"></div></div>
+                    <div class="wf-row"><div class="wf-block w1"></div><div class="wf-block w1"></div><div class="wf-block w1"></div></div>
+                    <div class="wf-row"><div class="wf-block w2 h-sm"></div><div class="wf-block w1 h-sm"></div></div>
+                    <div class="wf-row"><div class="wf-block w1 h-lg"></div><div class="wf-block w2"></div></div>
                   </div>
                 </div>
               </div>
 
               <!-- Toasts -->
               <div class="mock-toast toast-1">&#x1F9ED; Navigate: /board</div>
-              <div class="mock-toast toast-2">&#x1F5B1; Click: + New task</div>
-              <div class="mock-toast toast-3">&#x2328; Type: Ship dark mode to prod</div>
+              <div class="mock-toast toast-2">&#x1F5B1; Click: + Add</div>
+              <div class="mock-toast toast-3">&#x2328; Type: Enable dark mode</div>
               <div class="mock-toast toast-4">&#x2195; Scroll down</div>
             </div>
           </div>
@@ -971,37 +942,37 @@
         <div class="demo-step">
           <span class="demo-step-num">2</span>
           <span class="demo-step-icon">&#x1F441;</span>
-          <span class="demo-step-action">snapshot &quot;sprint board&quot;</span>
+          <span class="demo-step-action">snapshot &quot;app page&quot;</span>
           <span class="demo-step-time">0:02</span>
         </div>
         <div class="demo-step">
           <span class="demo-step-num">3</span>
           <span class="demo-step-icon">&#x1F5B1;</span>
-          <span class="demo-step-action">click &quot;+ New task&quot;</span>
+          <span class="demo-step-action">click &quot;+ Add&quot;</span>
           <span class="demo-step-time">0:04</span>
         </div>
         <div class="demo-step">
           <span class="demo-step-num">4</span>
           <span class="demo-step-icon">&#x2328;</span>
-          <span class="demo-step-action">fill &quot;title&quot; &quot;Ship dark mode to prod&quot;</span>
+          <span class="demo-step-action">fill &quot;name&quot; &quot;Enable dark mode&quot;</span>
           <span class="demo-step-time">0:06</span>
         </div>
         <div class="demo-step">
           <span class="demo-step-num">5</span>
           <span class="demo-step-icon">&#x2328;</span>
-          <span class="demo-step-action">fill &quot;assignee&quot; &quot;@emma&quot;</span>
+          <span class="demo-step-action">fill &quot;owner&quot; &quot;@emma&quot;</span>
           <span class="demo-step-time">0:07</span>
         </div>
         <div class="demo-step">
           <span class="demo-step-num">6</span>
           <span class="demo-step-icon">&#x1F5B1;</span>
-          <span class="demo-step-action">click &quot;High&quot; priority tag</span>
+          <span class="demo-step-action">click &quot;P1&quot; priority</span>
           <span class="demo-step-time">0:08</span>
         </div>
         <div class="demo-step">
           <span class="demo-step-num">7</span>
           <span class="demo-step-icon">&#x1F5B1;</span>
-          <span class="demo-step-action">click &quot;Create task&quot;</span>
+          <span class="demo-step-action">click &quot;Create&quot;</span>
           <span class="demo-step-time">0:10</span>
         </div>
         <div class="demo-step">
@@ -1013,7 +984,7 @@
         <div class="demo-step">
           <span class="demo-step-num">9</span>
           <span class="demo-step-icon">&#x1F4F7;</span>
-          <span class="demo-step-action">screenshot &quot;board with new task&quot;</span>
+          <span class="demo-step-action">screenshot &quot;page with new item&quot;</span>
           <span class="demo-step-time">0:14</span>
         </div>
       </div>
@@ -1031,7 +1002,7 @@
     var fills = document.querySelectorAll('.modal-input-text');
     var hiTag = document.querySelector('.modal-tag.selected-anim');
     var scrollEl = document.querySelector('.scroll-anim');
-    var newCard = document.querySelector('.kb-card.new-card');
+    var newCard = document.querySelector('.wf-block.new-item');
     var modalBtn = document.querySelector('.modal-btn');
     var idleTimer = null;
     var autoTimer = null;
@@ -1045,10 +1016,10 @@
     var stepMap = [
       { scr: 0, toast: 0, click: null,          action: 'navigate' },   // 1
       { scr: 0, toast: 0, click: null,          action: 'snapshot' },   // 2
-      { scr: 0, toast: 1, click: '.kb-add',     action: 'click' },      // 3
+      { scr: 0, toast: 1, click: '.wf-btn',      action: 'click' },      // 3
       { scr: 1, toast: 2, click: '.modal-field:nth-child(2) .modal-input', action: 'type', fillIdx: 0 }, // 4
       { scr: 1, toast: 2, click: '.modal-field:nth-child(3) .modal-input', action: 'type', fillIdx: 1 }, // 5
-      { scr: 1, toast: 2, click: '.modal-tag.hi',   action: 'click' },  // 6
+      { scr: 1, toast: 2, click: '.modal-tag.t2',    action: 'click' },  // 6
       { scr: 1, toast: 2, click: '.modal-btn',      action: 'click' },  // 7
       { scr: 2, toast: 3, click: null,          action: 'scroll' },     // 8
       { scr: 2, toast: 3, click: null,          action: 'snapshot' },   // 9
