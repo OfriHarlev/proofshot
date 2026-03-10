@@ -136,6 +136,8 @@ export async function stopCommand(options: StopOptions): Promise<void> {
     videoFilename: fs.existsSync(session.videoPath) ? path.basename(session.videoPath) : null,
     consoleErrorCount,
     serverErrorCount,
+    consoleOutput,
+    serverLog,
     entries: viewerEntries.length > 0 ? viewerEntries : undefined,
   });
 
