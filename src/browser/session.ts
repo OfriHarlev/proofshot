@@ -72,7 +72,10 @@ export interface ConsoleMessage {
 export function getConsoleOutputJson(): ConsoleMessage[] {
   try {
     const raw = ab('console --json');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    // agent-browser wraps JSON output: {success, data: {messages: [...]}, error}
+    const messages = parsed?.data?.messages ?? parsed;
+    return Array.isArray(messages) ? messages : [];
   } catch {
     return [];
   }

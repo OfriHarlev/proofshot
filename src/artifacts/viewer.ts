@@ -228,6 +228,16 @@ export function generateViewer(data: ViewerData): string {
       : '<p class="log-empty">No server log captured</p>';
   }
 
+  // Compute line counts for tab badges
+  const consoleLineCount =
+    data.consoleEntries && data.consoleEntries.length > 0
+      ? data.consoleEntries.length
+      : (data.consoleOutput ?? '').split('\n').filter((l) => l.trim()).length;
+  const serverLineCount =
+    data.serverEntries && data.serverEntries.length > 0
+      ? data.serverEntries.length
+      : (data.serverLog ?? '').split('\n').filter((l) => l.trim()).length;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -629,35 +639,21 @@ export function generateViewer(data: ViewerData): string {
       align-items: center;
     }
 
-    /* Log sections */
-    .log-section { border-bottom: 1px solid #21262d; }
+    /* Log tab content */
+    .log-tab-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
 
-    .log-section-header {
+    .log-tab-status {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 16px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s;
-      font-size: 13px;
-      font-weight: 600;
-      color: #c9d1d9;
+      padding: 8px 16px;
+      border-bottom: 1px solid #21262d;
+      font-size: 12px;
     }
-
-    .log-section-header:hover { background: #1c2128; }
-
-    .log-section-chevron {
-      font-size: 10px;
-      color: #484f58;
-      transition: transform 0.2s;
-      display: inline-block;
-      width: 16px;
-      text-align: center;
-    }
-
-    .log-section.collapsed .log-section-chevron { transform: rotate(-90deg); }
-    .log-section.collapsed .log-section-body { display: none; }
 
     .log-pre {
       margin: 0;
@@ -669,7 +665,7 @@ export function generateViewer(data: ViewerData): string {
       color: #c9d1d9;
       overflow-x: auto;
       white-space: pre;
-      max-height: 400px;
+      flex: 1;
       overflow-y: auto;
     }
 
@@ -879,7 +875,7 @@ export function generateViewer(data: ViewerData): string {
         flex-wrap: wrap;
       }
       .log-pre {
-        max-height: 300px;
+        max-height: 50vh;
       }
     }
   </style>
@@ -890,8 +886,8 @@ export function generateViewer(data: ViewerData): string {
     ${descriptionHtml}
     <p class="meta">${escapeHtml(date)} &middot; ${data.durationSec}s</p>
     <div class="error-badges">
-      <button class="error-badge ${consoleBadgeClass}" onclick="switchTab('logs'); scrollToLogSection('logSectionConsole')"><span class="badge-dot"></span>${consoleBadgeText}</button>
-      <button class="error-badge ${serverBadgeClass}" onclick="switchTab('logs'); scrollToLogSection('logSectionServer')"><span class="badge-dot"></span>${serverBadgeText}</button>
+      <button class="error-badge ${consoleBadgeClass}" onclick="switchTab('console')"><span class="badge-dot"></span>${consoleBadgeText}</button>
+      <button class="error-badge ${serverBadgeClass}" onclick="switchTab('server')"><span class="badge-dot"></span>${serverBadgeText}</button>
     </div>
   </div>
   <div class="viewer">
@@ -901,7 +897,8 @@ export function generateViewer(data: ViewerData): string {
     <div class="timeline-panel">
       <div class="panel-tabs">
         <button class="panel-tab active" data-tab="timeline" onclick="switchTab('timeline')">Timeline &middot; ${data.entries.length}</button>
-        <button class="panel-tab" data-tab="logs" onclick="switchTab('logs')">Logs</button>
+        <button class="panel-tab" data-tab="console" onclick="switchTab('console')">Console${consoleLineCount > 0 ? ` &middot; ${consoleLineCount}` : ''}</button>
+        <button class="panel-tab" data-tab="server" onclick="switchTab('server')">Server${serverLineCount > 0 ? ` &middot; ${serverLineCount}` : ''}</button>
         <div class="panel-tab-actions" id="tabActionsTimeline">
           <label class="overlay-toggle"><input type="checkbox" id="toggle-overlays" checked><span class="toggle-track"></span> Overlays<span class="tooltip">Show ripple animations and action labels on the video as each step plays.</span></label>
         </div>
@@ -909,22 +906,20 @@ export function generateViewer(data: ViewerData): string {
       <div id="tabTimeline">
 ${stepsHtml}
       </div>
-      <div id="tabLogs" style="display:none">
-        <div class="log-section" id="logSectionConsole">
-          <div class="log-section-header" onclick="toggleLogSection('logSectionConsole')">
-            <span class="log-section-chevron">&#9660;</span>
-            <span>Console Output</span>
-            <span class="error-badge ${consoleBadgeClass}" style="margin-left:auto;cursor:default"><span class="badge-dot"></span>${consoleBadgeText}</span>
+      <div id="tabConsole" style="display:none">
+        <div class="log-tab-content">
+          <div class="log-tab-status">
+            <span class="error-badge ${consoleBadgeClass}" style="cursor:default"><span class="badge-dot"></span>${consoleBadgeText}</span>
           </div>
-          <div class="log-section-body">${consoleLogBodyHtml}</div>
+          ${consoleLogBodyHtml}
         </div>
-        <div class="log-section" id="logSectionServer">
-          <div class="log-section-header" onclick="toggleLogSection('logSectionServer')">
-            <span class="log-section-chevron">&#9660;</span>
-            <span>Server Log</span>
-            <span class="error-badge ${serverBadgeClass}" style="margin-left:auto;cursor:default"><span class="badge-dot"></span>${serverBadgeText}</span>
+      </div>
+      <div id="tabServer" style="display:none">
+        <div class="log-tab-content">
+          <div class="log-tab-status">
+            <span class="error-badge ${serverBadgeClass}" style="cursor:default"><span class="badge-dot"></span>${serverBadgeText}</span>
           </div>
-          <div class="log-section-body">${serverLogBodyHtml}</div>
+          ${serverLogBodyHtml}
         </div>
       </div>
     </div>
@@ -964,23 +959,10 @@ ${stepsHtml}
         btn.classList.toggle('active', btn.dataset.tab === tab);
       });
       document.getElementById('tabTimeline').style.display = tab === 'timeline' ? '' : 'none';
-      document.getElementById('tabLogs').style.display = tab === 'logs' ? '' : 'none';
+      document.getElementById('tabConsole').style.display = tab === 'console' ? '' : 'none';
+      document.getElementById('tabServer').style.display = tab === 'server' ? '' : 'none';
       var actions = document.getElementById('tabActionsTimeline');
       if (actions) actions.style.display = tab === 'timeline' ? '' : 'none';
-    }
-
-    function toggleLogSection(sectionId) {
-      var section = document.getElementById(sectionId);
-      if (section) section.classList.toggle('collapsed');
-    }
-
-    function scrollToLogSection(sectionId) {
-      var section = document.getElementById(sectionId);
-      if (!section) return;
-      section.classList.remove('collapsed');
-      requestAnimationFrame(function() {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
     }
 
     const video = document.querySelector('video');
@@ -1304,25 +1286,26 @@ ${stepsHtml}
 
     // Highlight active log line for a given video time
     function updateActiveLogLine(t) {
-      let activeLog = null;
       logLines.forEach(line => {
         const lt = parseFloat(line.dataset.time);
         const nextLine = line.nextElementSibling;
         const hasNext = nextLine && nextLine.dataset && nextLine.dataset.time !== undefined;
         const nextTime = hasNext ? parseFloat(nextLine.dataset.time) : Infinity;
-        const isActive = t >= lt && t < nextTime;
-        line.classList.toggle('active', isActive);
-        if (isActive) activeLog = line;
+        line.classList.toggle('active', t >= lt && t < nextTime);
       });
 
-      // Auto-scroll active log line when on Logs tab
-      if (activeLog && activeTab === 'logs') {
-        const pre = activeLog.closest('.log-pre');
-        if (pre) {
-          const preRect = pre.getBoundingClientRect();
-          const lineRect = activeLog.getBoundingClientRect();
-          if (lineRect.top < preRect.top || lineRect.bottom > preRect.bottom) {
-            activeLog.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      // Auto-scroll the active log line in the currently visible tab
+      if (activeTab === 'console' || activeTab === 'server') {
+        var tabId = activeTab === 'console' ? 'tabConsole' : 'tabServer';
+        var tabEl = document.getElementById(tabId);
+        if (tabEl) {
+          var activeLine = tabEl.querySelector('.log-line.active');
+          if (activeLine && timelinePanel) {
+            var panelRect = timelinePanel.getBoundingClientRect();
+            var lineRect = activeLine.getBoundingClientRect();
+            if (lineRect.top < panelRect.top || lineRect.bottom > panelRect.bottom) {
+              activeLine.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
           }
         }
       }
