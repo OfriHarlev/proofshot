@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/AmElmo/proofshot/compare/v1.3.1...v1.3.2) (2026-03-25)
+
+### Bug Fixes
+
+* correct version mismatch and GitHub repository URLs ([#23](https://github.com/AmElmo/proofshot/issues/23)) ([6c17a3e](https://github.com/AmElmo/proofshot/commit/6c17a3e59c1806957405b7a4858a24a48200ff20))
+
 ## [1.3.1](https://github.com/AmElmo/proofshot/compare/v1.3.0...v1.3.1) (2026-03-10)
 
 ### Bug Fixes
