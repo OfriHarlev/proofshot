@@ -65,7 +65,7 @@ export interface PRCommentData {
   description: string | null;
   sessionCount: number;
   screenshots: Map<string, string>; // filename → GitHub asset URL
-  videoUrl: string | null;
+  video: { url: string; renderMode: 'embed' | 'link' } | null;
   errorCount: number;
   branch: string;
   commitSha: string;
@@ -90,9 +90,13 @@ export function formatPRComment(data: PRCommentData): string {
   md += `${status}\n\n`;
 
   // Video (GitHub renders video URLs as playable embeds)
-  if (data.videoUrl) {
+  if (data.video) {
     md += `### Recording\n\n`;
-    md += `${data.videoUrl}\n\n`;
+    if (data.video.renderMode === 'embed') {
+      md += `${data.video.url}\n\n`;
+    } else {
+      md += `[Session recording](${data.video.url})\n\n`;
+    }
   }
 
   // Screenshots
