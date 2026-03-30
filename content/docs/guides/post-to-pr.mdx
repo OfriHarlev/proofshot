@@ -10,7 +10,7 @@ import { Callout, Steps } from 'nextra/components'
 After a verification session, upload screenshots and video to GitHub and post a formatted comment on your pull request with embedded proof artifacts.
 
 <Callout type="info">
-**Prerequisites:** [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated. At least one completed ProofShot session on the current branch.
+**Prerequisites:** [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated, or `GH_TOKEN` / `GITHUB_TOKEN` set. At least one completed ProofShot session on the current branch.
 </Callout>
 
 <Steps>
@@ -32,6 +32,12 @@ To target a specific PR number:
 proofshot pr 42
 ```
 
+To use GitHub's internal web attachment flow instead of the default contents-based uploader:
+
+```sh
+proofshot pr --upload-provider github-web-attachments
+```
+
 ### Preview before posting
 
 To see the markdown that would be posted without actually posting:
@@ -47,9 +53,10 @@ This outputs the formatted comment to stdout so you can review it.
 
 1. ProofShot reads `metadata.json` from each session folder in `proofshot-artifacts/`
 2. Sessions matching the current git branch are selected
-3. Screenshots and video are uploaded as GitHub user-attachments
+3. By default, screenshots and video are uploaded to a dedicated `proofshot-artifacts` branch using the official GitHub contents API
 4. If ffmpeg is available, `.webm` video is converted to `.mp4` for better browser compatibility
-5. A formatted markdown comment is posted on the PR with inline media
+5. A formatted markdown comment is posted on the PR with embedded screenshots and a recording link
+6. Optional: `--upload-provider github-web-attachments` uses GitHub's internal attachment endpoint for inline-hosted media
 
 ## Troubleshooting
 
@@ -59,8 +66,22 @@ Make sure you ran `proofshot start` and `proofshot stop` on the same branch you'
 **"gh: command not found"**
 Install the [GitHub CLI](https://cli.github.com/) and authenticate with `gh auth login`.
 
+**"GitHub web attachment upload failed (422)"**
+GitHub rejected the experimental `github-web-attachments` provider. Retry with the default provider:
+
+```sh
+proofshot pr --upload-provider repo-contents
+```
+
+Or supply a token explicitly:
+
+```sh
+export GH_TOKEN=YOUR_TOKEN
+proofshot pr --upload-provider github-web-attachments
+```
+
 **Video not showing in the PR comment**
-GitHub doesn't support `.webm` in markdown comments. Install ffmpeg so ProofShot can convert the video to `.mp4` before uploading.
+GitHub doesn't support `.webm` in markdown comments. Install ffmpeg so ProofShot can convert the video to `.mp4` before uploading. With the default `repo-contents` provider, recordings are linked rather than rendered as GitHub attachment embeds.
 
 ## What's next?
 

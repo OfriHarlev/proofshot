@@ -152,6 +152,8 @@ proofshot pr [number] [options]
 |-----------------|-------------|
 | `[number]` | PR number. If omitted, auto-detected from current branch |
 | `--dry-run` | Print the markdown comment without posting |
+| `--upload-provider <provider>` | Upload backend: `repo-contents` (default) or `github-web-attachments` |
+| `--artifacts-branch <branch>` | Git branch used by the `repo-contents` provider. Default: `proofshot-artifacts` |
 
 **Examples:**
 
@@ -159,16 +161,21 @@ proofshot pr [number] [options]
 proofshot pr               # Auto-detect PR from branch
 proofshot pr 42            # Post to PR #42
 proofshot pr --dry-run     # Preview without posting
+proofshot pr --upload-provider github-web-attachments
 ```
 
-**Requires:** [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated.
+**Requires:** [GitHub CLI](https://cli.github.com/) (`gh`) installed and authenticated, or `GH_TOKEN` / `GITHUB_TOKEN`.
 
 **What happens:**
 1. Reads `metadata.json` from each session folder
 2. Selects sessions matching the current git branch
-3. Uploads screenshots and video to GitHub
+3. Uploads screenshots and video to GitHub using the selected provider
 4. Converts `.webm` to `.mp4` if ffmpeg is available
 5. Posts a formatted markdown comment on the PR
+
+`repo-contents` uses the official GitHub contents API and stores artifacts on a dedicated branch.
+
+`github-web-attachments` uses GitHub's internal web attachment upload endpoint and may reject browser-based `gh auth login` OAuth sessions.
 
 ---
 

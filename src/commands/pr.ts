@@ -4,6 +4,7 @@ import { execSync } from 'child_process';
 import chalk from 'chalk';
 import { loadConfig } from '../utils/config.js';
 import {
+  type GitHubUploadProvider,
   getGitHubToken,
   getRepoInfo,
   getPRNumber,
@@ -16,11 +17,15 @@ import { formatPRComment, type PRCommentData } from '../artifacts/pr-format.js';
 interface PROptions {
   prNumber?: string;
   dryRun?: boolean;
+  uploadProvider?: GitHubUploadProvider;
+  artifactsBranch?: string;
 }
 
 export async function prCommand(options: PROptions): Promise<void> {
   const config = loadConfig();
   const outputDir = path.resolve(config.output);
+  const uploadProvider = normalizeUploadProvider(options.uploadProvider);
+  const artifactsBranch = options.artifactsBranch || 'proofshot-artifacts';
 
   // 1. Determine current branch
   let branch: string;
@@ -135,8 +140,11 @@ export async function prCommand(options: PROptions): Promise<void> {
       description,
       sessionCount: sessionDirs.length,
       screenshots: screenshotMap,
-      videoUrl: videoPath
-        ? `https://github.com/user-attachments/assets/<${path.basename(videoPath)}>`
+      video: videoPath
+        ? {
+            url: `https://github.com/user-attachments/assets/<${path.basename(videoPath)}>`,
+            renderMode: 'embed',
+          }
         : null,
       errorCount,
       branch,
@@ -155,16 +163,30 @@ export async function prCommand(options: PROptions): Promise<void> {
 
   // 7. Authenticate and get repo info
   const token = getGitHubToken();
-  const repoInfo = getRepoInfo();
+  const repoInfo = await getRepoInfo(token);
 
   // 8. Upload artifacts
   const filesToUpload = [...screenshotPaths];
   if (videoPath) filesToUpload.push(videoPath);
 
+  const uploadRoot = buildUploadRoot(branch, prNumber, latestCommitSha);
+
+  console.log(chalk.dim(`Upload provider: ${uploadProvider}`));
+  if (uploadProvider === 'repo-contents') {
+    console.log(chalk.dim(`Artifacts branch: ${artifactsBranch}`));
+  }
   console.log(chalk.dim(`Uploading ${filesToUpload.length} artifact(s)...`));
 
-  const uploaded = await uploadAssets(filesToUpload, token, repoInfo.id, (current, total, fileName) => {
-    console.log(chalk.dim(`  [${current}/${total}] ${fileName}`));
+  const uploaded = await uploadAssets({
+    filePaths: filesToUpload,
+    token,
+    repo: repoInfo,
+    uploadProvider,
+    uploadRoot,
+    artifactsBranch,
+    onProgress: (current, total, fileName) => {
+      console.log(chalk.dim(`  [${current}/${total}] ${fileName}`));
+    },
   });
 
   // Build screenshot URL map using full path as upload key
@@ -180,10 +202,15 @@ export async function prCommand(options: PROptions): Promise<void> {
   }
 
   // Get video URL
-  let videoUrl: string | null = null;
+  let video: { url: string; renderMode: 'embed' | 'link' } | null = null;
   if (videoPath) {
     const videoAsset = uploaded.get(videoPath);
-    if (videoAsset) videoUrl = videoAsset.url;
+    if (videoAsset) {
+      video = {
+        url: videoAsset.url,
+        renderMode: uploadProvider === 'repo-contents' ? 'link' : 'embed',
+      };
+    }
     else failedUploads++;
   }
 
@@ -191,12 +218,25 @@ export async function prCommand(options: PROptions): Promise<void> {
     console.log(chalk.yellow(`⚠ ${failedUploads} artifact(s) failed to upload`));
   }
 
+  if (filesToUpload.length > 0 && uploaded.size === 0) {
+    console.error(
+      chalk.red('✗') +
+        ' All artifact uploads failed. PR comment was not posted.\n' +
+        chalk.dim(
+          uploadProvider === 'github-web-attachments'
+            ? 'Retry with "proofshot pr --upload-provider repo-contents" or use "proofshot pr --dry-run".'
+            : 'Retry with "proofshot pr --dry-run" to inspect the generated markdown.',
+        ),
+    );
+    process.exit(1);
+  }
+
   // 9. Generate and post PR comment
   const commentData: PRCommentData = {
     description,
     sessionCount: sessionDirs.length,
     screenshots: screenshotMap,
-    videoUrl,
+    video,
     errorCount,
     branch,
     commitSha: latestCommitSha,
@@ -210,7 +250,7 @@ export async function prCommand(options: PROptions): Promise<void> {
   console.log('');
   console.log(chalk.green.bold(`✅ Posted ProofShot verification to PR #${prNumber}`));
   console.log(
-    chalk.dim(`  ${screenshotMap.size} screenshot(s), ${videoUrl ? '1 video' : 'no video'}`),
+    chalk.dim(`  ${screenshotMap.size} screenshot(s), ${video ? '1 video' : 'no video'}`),
   );
 }
 
@@ -222,4 +262,23 @@ function screenshotLabel(ssPath: string): string {
   const sessionDir = path.basename(path.dirname(ssPath));
   const fileName = path.basename(ssPath);
   return `${sessionDir}/${fileName}`;
+}
+
+function buildUploadRoot(branch: string, prNumber: number, commitSha: string): string {
+  const sanitizedBranch = branch.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'branch';
+  const sha = commitSha ? commitSha.slice(0, 7) : 'unknown-sha';
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return path.posix.join('proofshot', `pr-${prNumber}`, sanitizedBranch, `${timestamp}-${sha}`);
+}
+
+function normalizeUploadProvider(provider?: string): GitHubUploadProvider {
+  if (!provider || provider === 'repo-contents' || provider === 'github-web-attachments') {
+    return provider || 'repo-contents';
+  }
+
+  console.error(
+    chalk.red('✗') +
+      ` Invalid upload provider "${provider}". Use "repo-contents" or "github-web-attachments".`,
+  );
+  process.exit(1);
 }

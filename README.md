@@ -145,15 +145,20 @@ proofshot diff --baseline ./previous-artifacts
 
 ### `proofshot pr`
 
-Upload session artifacts to GitHub and post a verification comment on the PR. Finds all sessions recorded on the current branch, uploads screenshots and video, and posts a formatted comment with inline media.
+Upload session artifacts to GitHub and post a verification comment on the PR. Finds all sessions recorded on the current branch, uploads screenshots and video, and posts a formatted comment with embedded screenshots.
 
 ```bash
 proofshot pr              # Auto-detect PR from current branch
 proofshot pr 42           # Target a specific PR
 proofshot pr --dry-run    # Preview the markdown without posting
+proofshot pr --upload-provider github-web-attachments  # Use GitHub's internal attachment flow
 ```
 
-Requires the [GitHub CLI](https://cli.github.com) (`gh`) to be installed and authenticated. Converts `.webm` video to `.mp4` if `ffmpeg` is available.
+By default, ProofShot uses the official GitHub repository contents API and uploads artifacts to a dedicated `proofshot-artifacts` branch. This works with normal `gh` authentication and `GH_TOKEN`.
+
+The `github-web-attachments` provider is still available for inline GitHub-hosted media, but it relies on GitHub's internal web upload endpoint and may reject browser-based `gh auth login` OAuth sessions.
+
+Converts `.webm` video to `.mp4` if `ffmpeg` is available.
 
 ### `proofshot clean`
 

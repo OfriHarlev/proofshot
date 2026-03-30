@@ -6,6 +6,7 @@ import { diffCommand } from './commands/diff.js';
 import { cleanCommand } from './commands/clean.js';
 import { prCommand } from './commands/pr.js';
 import { execCommand } from './commands/exec.js';
+import packageJson from '../package.json';
 
 export function createCLI(): Command {
   const program = new Command();
@@ -13,7 +14,7 @@ export function createCLI(): Command {
   program
     .name('proofshot')
     .description('Visual verification for AI coding agents')
-    .version('1.3.1');
+    .version(packageJson.version);
 
   program
     .command('install')
@@ -67,6 +68,16 @@ export function createCLI(): Command {
     .description('Upload session artifacts and post a ProofShot comment on a GitHub PR')
     .argument('[pr-number]', 'PR number (auto-detects from current branch if omitted)')
     .option('--dry-run', 'Generate the comment markdown without posting')
+    .option(
+      '--upload-provider <provider>',
+      'Artifact upload backend: repo-contents or github-web-attachments',
+      'repo-contents',
+    )
+    .option(
+      '--artifacts-branch <branch>',
+      'Git branch used by the repo-contents upload provider',
+      'proofshot-artifacts',
+    )
     .action(async (prNumber, options) => {
       await prCommand({ prNumber, ...options });
     });

@@ -59,7 +59,7 @@ proofshot pr              # Auto-detect PR from current branch
 proofshot pr 42           # Target a specific PR number
 ```
 
-This uploads screenshots and video to GitHub and posts a formatted comment on the PR with inline media. Requires `gh` CLI to be authenticated.
+This uploads screenshots and video to GitHub and posts a formatted comment on the PR. By default it uses the official GitHub contents API on a `proofshot-artifacts` branch. Use `--upload-provider github-web-attachments` if you specifically want GitHub attachment URLs.
 
 ## Tips
 
