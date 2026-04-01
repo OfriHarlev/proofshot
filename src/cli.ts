@@ -6,7 +6,7 @@ import { diffCommand } from './commands/diff.js';
 import { cleanCommand } from './commands/clean.js';
 import { prCommand } from './commands/pr.js';
 import { execCommand } from './commands/exec.js';
-import packageJson from '../package.json';
+import { PROOFSHOT_VERSION } from './version.js';
 
 export function createCLI(): Command {
   const program = new Command();
@@ -14,7 +14,7 @@ export function createCLI(): Command {
   program
     .name('proofshot')
     .description('Visual verification for AI coding agents')
-    .version(packageJson.version);
+    .version(PROOFSHOT_VERSION);
 
   program
     .command('install')

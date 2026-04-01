@@ -1,4 +1,9 @@
 import { defineConfig } from 'tsup';
+import * as fs from 'fs';
+
+const packageJson = JSON.parse(
+  fs.readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
+) as { version: string };
 
 export default defineConfig([
   {
@@ -9,6 +14,9 @@ export default defineConfig([
     sourcemap: true,
     clean: true,
     shims: true,
+    define: {
+      __PROOFSHOT_VERSION__: JSON.stringify(packageJson.version),
+    },
     banner: {
       js: '#!/usr/bin/env node',
     },
@@ -22,5 +30,8 @@ export default defineConfig([
     sourcemap: true,
     dts: true,
     shims: true,
+    define: {
+      __PROOFSHOT_VERSION__: JSON.stringify(packageJson.version),
+    },
   },
 ]);
