@@ -1,3 +1,10 @@
+## [1.3.4](https://github.com/AmElmo/proofshot/compare/v1.3.3...v1.3.4) (2026-04-01)
+
+### Bug Fixes
+
+* **cli:** derive version from package.json ([#32](https://github.com/AmElmo/proofshot/issues/32)) ([0a7dd1b](https://github.com/AmElmo/proofshot/commit/0a7dd1b64f671980c0795ead58104635492dbc06))
+* support windows shell commands ([#31](https://github.com/AmElmo/proofshot/issues/31)) ([8cb56d8](https://github.com/AmElmo/proofshot/commit/8cb56d82f3421babdb41212c477254039b6075e0))
+
 ## [1.3.3](https://github.com/AmElmo/proofshot/compare/v1.3.2...v1.3.3) (2026-03-30)
 
 ### Bug Fixes
