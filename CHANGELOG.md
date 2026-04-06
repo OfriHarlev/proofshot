@@ -1,3 +1,9 @@
+## [1.3.5](https://github.com/AmElmo/proofshot/compare/v1.3.4...v1.3.5) (2026-04-06)
+
+### Bug Fixes
+
+* correct token usage totals in reports ([5eb7bd8](https://github.com/AmElmo/proofshot/commit/5eb7bd81653a3f6f7dec540248ec8a5593f9e1d1))
+
 ## [1.3.4](https://github.com/AmElmo/proofshot/compare/v1.3.3...v1.3.4) (2026-04-01)
 
 ### Bug Fixes
