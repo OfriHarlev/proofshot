@@ -43,4 +43,24 @@ describe('loadConfig', () => {
       videoTrimMs: 60000,
     });
   });
+
+  it('merges viewport device scale factor with defaults', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'proofshot-viewport-config-'));
+    fs.writeFileSync(
+      path.join(tempDir, 'proofshot.config.json'),
+      JSON.stringify({
+        viewport: {
+          width: 1920,
+          height: 1080,
+          deviceScaleFactor: 1,
+        },
+      }),
+    );
+
+    expect(loadConfig(tempDir).viewport).toEqual({
+      width: 1920,
+      height: 1080,
+      deviceScaleFactor: 1,
+    });
+  });
 });
