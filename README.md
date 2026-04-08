@@ -144,6 +144,17 @@ proofshot start --headed                                # Show browser (debuggin
 proofshot start --force                                 # Override a stale session from a previous crash
 ```
 
+You can also configure browser launch behavior in `proofshot.config.json`:
+
+```json
+{
+  "browser": {
+    "ignoreHttpsErrors": true,
+    "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  }
+}
+```
+
 ### `proofshot stop`
 
 Stop recording, collect errors, generate proof artifacts.

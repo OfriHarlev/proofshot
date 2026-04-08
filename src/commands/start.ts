@@ -110,7 +110,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
 
   console.log(chalk.dim('Opening browser...'));
   try {
-    openBrowser(openUrl, config.viewport, config.headless, sessionName);
+    openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser);
     console.log(chalk.green('✓') + ' Browser ready');
   } catch (error: any) {
     console.error(
