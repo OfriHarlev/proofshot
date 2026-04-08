@@ -125,6 +125,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
     openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser, config.timeouts);
     console.log(chalk.green('✓') + ' Browser ready');
   } catch (error: any) {
+    closeBrowser(sessionName);
     console.error(
       chalk.red('✗') +
         ` Failed to open browser: ${error.message}\n` +

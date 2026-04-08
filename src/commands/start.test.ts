@@ -134,4 +134,17 @@ describe('startCommand', () => {
     expect(mocks.stopRecording).not.toHaveBeenCalled();
     expect(mocks.closeBrowser).toHaveBeenCalledWith('proofshot-2026-04-08_07-28-00');
   });
+
+  it('closes the session-scoped browser when browser open fails', async () => {
+    mocks.openBrowser.mockImplementation(() => {
+      throw new Error('Chrome exited early without writing DevToolsActivePort');
+    });
+
+    const commandPromise = startCommand({}).catch((error) => error);
+
+    await expect(commandPromise).resolves.toMatchObject({ message: 'process.exit:1' });
+    expect(mocks.closeBrowser).toHaveBeenCalledWith('proofshot-2026-04-08_07-28-00');
+    expect(mocks.startRecording).not.toHaveBeenCalled();
+    expect(mocks.saveSession).not.toHaveBeenCalled();
+  });
 });
