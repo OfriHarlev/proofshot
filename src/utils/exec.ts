@@ -12,8 +12,17 @@ export class ProofShotError extends Error {
 }
 
 export interface AgentBrowserCommandOptions {
+  configPath?: string;
   session?: string;
   timeoutMs?: number;
+}
+
+let defaultAgentBrowserOptions: Pick<AgentBrowserCommandOptions, 'configPath'> = {};
+
+export function setAgentBrowserDefaults(
+  options: Pick<AgentBrowserCommandOptions, 'configPath'>,
+): void {
+  defaultAgentBrowserOptions = { ...options };
 }
 
 function shellQuote(value: string): string {
@@ -23,10 +32,15 @@ function shellQuote(value: string): string {
 
 export function buildAgentBrowserCommand(
   command: string,
-  options: Pick<AgentBrowserCommandOptions, 'session'> = {},
+  options: Pick<AgentBrowserCommandOptions, 'configPath' | 'session'> = {},
 ): string {
-  const sessionFlag = options.session ? ` --session ${shellQuote(options.session)}` : '';
-  return `agent-browser${sessionFlag} ${command}`;
+  const mergedOptions = {
+    ...defaultAgentBrowserOptions,
+    ...options,
+  };
+  const configFlag = mergedOptions.configPath ? ` --config ${shellQuote(mergedOptions.configPath)}` : '';
+  const sessionFlag = mergedOptions.session ? ` --session ${shellQuote(mergedOptions.session)}` : '';
+  return `agent-browser${configFlag}${sessionFlag} ${command}`;
 }
 
 /**
