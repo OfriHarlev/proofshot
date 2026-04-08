@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
 import { ensureDevServer } from '../server/start.js';
-import { openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
+import { closeBrowser, openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
 import { startRecording, stopRecording } from '../browser/capture.js';
 import { ensureOutputDir, generateTimestamp, generateSessionDirName } from '../artifacts/bundle.js';
 import {
@@ -141,16 +141,21 @@ export async function startCommand(options: StartOptions): Promise<void> {
   let lastObservedState: BrowserState | null = null;
 
   for (let attempt = 1; attempt <= RECORDING_RETRIES; attempt++) {
+    let recordingAttemptStarted = false;
+
     try {
       startRecording(videoPath, sessionName, config.timeouts);
+      recordingAttemptStarted = true;
       lastObservedState = verifyBrowserState(openUrl, config.viewport, sessionName);
       recordingStarted = true;
       console.log(chalk.green('✓') + ' Recording started');
       break;
     } catch (error: any) {
       lastError = error;
-      if (attempt < RECORDING_RETRIES) {
+      if (recordingAttemptStarted) {
         stopRecording(sessionName, config.timeouts);
+      }
+      if (attempt < RECORDING_RETRIES) {
         console.log(
           chalk.yellow('⚠') +
             ` Recording failed (attempt ${attempt}/${RECORDING_RETRIES}), retrying in ${RETRY_DELAY_MS / 1000}s...`,
@@ -161,9 +166,10 @@ export async function startCommand(options: StartOptions): Promise<void> {
   }
 
   if (!recordingStarted) {
+    closeBrowser(sessionName);
     console.error(
       chalk.red('✗') +
-        ` Failed to start recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}\n` +
+        ` Failed to initialize recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}\n` +
         chalk.dim('Recording is required — ProofShot cannot proceed without video capture.\n') +
         chalk.dim(`Observed browser state: ${formatBrowserState(lastObservedState)}\n`) +
         chalk.dim('Troubleshooting:\n') +
