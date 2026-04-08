@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildOpenBrowserCommand, getViewport, urlsMatch, verifyBrowserState } from './session.js';
+import {
+  buildOpenBrowserCommand,
+  buildSetViewportCommand,
+  getViewport,
+  urlsMatch,
+  verifyBrowserState,
+} from './session.js';
 
 const { abMock } = vi.hoisted(() => ({
   abMock: vi.fn(),
@@ -32,6 +38,18 @@ describe('buildOpenBrowserCommand', () => {
       }),
     ).toBe(
       'open https://localhost:3000 --ignore-https-errors --executable-path "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"',
+    );
+  });
+});
+
+describe('buildSetViewportCommand', () => {
+  it('builds a viewport command with width and height', () => {
+    expect(buildSetViewportCommand({ width: 1280, height: 720 })).toBe('set viewport 1280 720');
+  });
+
+  it('includes device scale factor when configured', () => {
+    expect(buildSetViewportCommand({ width: 1920, height: 1080, deviceScaleFactor: 1 })).toBe(
+      'set viewport 1920 1080 1',
     );
   });
 });

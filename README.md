@@ -155,6 +155,18 @@ You can also configure browser launch behavior in `proofshot.config.json`:
 }
 ```
 
+Viewport sizing is configurable too, including an optional device scale factor:
+
+```json
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1
+  }
+}
+```
+
 After recording starts, ProofShot verifies that the browser is still on the expected URL and viewport. If that state is wrong, it fails early with the observed browser state instead of continuing into misleading screenshots and logs.
 
 ### `proofshot stop`

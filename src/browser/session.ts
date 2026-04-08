@@ -16,6 +16,14 @@ export function buildOpenBrowserCommand(
   return `open ${url}${suffix}`;
 }
 
+export function buildSetViewportCommand(viewport: ViewportConfig): string {
+  const parts = ['set', 'viewport', String(viewport.width), String(viewport.height)];
+  if (viewport.deviceScaleFactor !== undefined) {
+    parts.push(String(viewport.deviceScaleFactor));
+  }
+  return parts.join(' ');
+}
+
 export interface BrowserState {
   url: string;
   viewport: ViewportConfig | null;
@@ -33,7 +41,11 @@ export function openBrowser(
   browserConfig?: BrowserConfig,
 ): void {
   ab(buildOpenBrowserCommand(url, headless, browserConfig), { timeoutMs: 60000, session: sessionName });
-  ab(`set viewport ${viewport.width} ${viewport.height}`, { session: sessionName });
+  applyViewport(viewport, sessionName);
+}
+
+export function applyViewport(viewport: ViewportConfig, sessionName?: string): void {
+  ab(buildSetViewportCommand(viewport), { session: sessionName });
 }
 
 /**
@@ -127,9 +139,11 @@ export function getPageUrl(sessionName?: string): string {
 /**
  * Get the current viewport from the page context.
  */
-export function getViewport(): ViewportConfig | null {
+export function getViewport(sessionName?: string): ViewportConfig | null {
   try {
-    const raw = ab("eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'");
+    const raw = ab("eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'", {
+      session: sessionName,
+    });
     const parsed = JSON.parse(raw);
     if (
       typeof parsed?.width === 'number' &&
@@ -165,9 +179,10 @@ export function urlsMatch(expectedUrl: string, actualUrl: string): boolean {
 export function verifyBrowserState(
   expectedUrl: string,
   expectedViewport: ViewportConfig,
+  sessionName?: string,
 ): BrowserState {
-  const url = getPageUrl();
-  const viewport = getViewport();
+  const url = getPageUrl(sessionName);
+  const viewport = getViewport(sessionName);
 
   if (!url) {
     throw new ProofShotError(

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
 import { ensureDevServer } from '../server/start.js';
-import { openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
+import { applyViewport, openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
 import { startRecording, stopRecording } from '../browser/capture.js';
 import { ensureOutputDir, generateTimestamp, generateSessionDirName } from '../artifacts/bundle.js';
 import {
@@ -143,7 +143,10 @@ export async function startCommand(options: StartOptions): Promise<void> {
   for (let attempt = 1; attempt <= RECORDING_RETRIES; attempt++) {
     try {
       startRecording(videoPath, sessionName);
-      lastObservedState = verifyBrowserState(openUrl, config.viewport);
+      // Reapply the requested viewport after recording starts so the recording
+      // context and the interactive session stay aligned.
+      applyViewport(config.viewport, sessionName);
+      lastObservedState = verifyBrowserState(openUrl, config.viewport, sessionName);
       recordingStarted = true;
       console.log(chalk.green('✓') + ' Recording started');
       break;
