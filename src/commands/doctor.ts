@@ -28,6 +28,7 @@ export async function doctorCommand(): Promise<void> {
 
   printLine('ProofShot', PROOFSHOT_VERSION);
   printLine('Config', configPath || chalk.dim('not found'));
+  printLine('AB config', config.browser.configPath || chalk.dim('default resolution'));
   printLine('Output', outputDir);
   printLine('Browser mode', config.headless ? 'headless' : 'headed');
   printLine('Viewport', `${config.viewport.width}x${config.viewport.height}`);

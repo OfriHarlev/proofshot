@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
-import { ab, buildAgentBrowserCommand } from '../utils/exec.js';
+import { ab, buildAgentBrowserCommand, setAgentBrowserDefaults } from '../utils/exec.js';
 import { loadSession, saveSession, type SessionState } from '../session/state.js';
 
 const SESSION_LOG_FILENAME = 'session-log.json';
@@ -183,6 +183,7 @@ export async function execCommand(args: string[]): Promise<void> {
 
   // Load session state
   const config = loadConfig();
+  setAgentBrowserDefaults({ configPath: config.browser.configPath });
   const outputDir = path.resolve(config.output);
   const session = loadSession(outputDir);
 
