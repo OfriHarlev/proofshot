@@ -1,5 +1,10 @@
 import { ab, ProofShotError } from '../utils/exec.js';
-import type { BrowserConfig, ViewportConfig } from '../utils/config.js';
+import {
+  DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
+  type BrowserConfig,
+  type TimeoutConfig,
+  type ViewportConfig,
+} from '../utils/config.js';
 
 export function buildOpenBrowserCommand(
   url: string,
@@ -10,7 +15,9 @@ export function buildOpenBrowserCommand(
 
   if (!headless) flags.push('--headed');
   if (browserConfig?.ignoreHttpsErrors) flags.push('--ignore-https-errors');
-  if (browserConfig?.executablePath) flags.push(`--executable-path "${browserConfig.executablePath.replace(/"/g, '\\"')}"`);
+  if (browserConfig?.executablePath) {
+    flags.push(`--executable-path "${browserConfig.executablePath.replace(/"/g, '\\"')}"`);
+  }
 
   const suffix = flags.length > 0 ? ` ${flags.join(' ')}` : '';
   return `open ${url}${suffix}`;
@@ -31,8 +38,12 @@ export function openBrowser(
   headless = true,
   sessionName?: string,
   browserConfig?: BrowserConfig,
+  timeouts?: TimeoutConfig,
 ): void {
-  ab(buildOpenBrowserCommand(url, headless, browserConfig), { timeoutMs: 60000, session: sessionName });
+  ab(buildOpenBrowserCommand(url, headless, browserConfig), {
+    timeoutMs: timeouts?.browserOpenMs ?? DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
+    session: sessionName,
+  });
   ab(`set viewport ${viewport.width} ${viewport.height}`, { session: sessionName });
 }
 
@@ -83,8 +94,8 @@ export function getConsoleOutput(sessionName?: string): string {
 
 export interface ConsoleMessage {
   text: string;
-  timestamp: number; // epoch ms
-  type: string; // log, warn, error, etc.
+  timestamp: number;
+  type: string;
 }
 
 /**
@@ -94,7 +105,6 @@ export function getConsoleOutputJson(sessionName?: string): ConsoleMessage[] {
   try {
     const raw = ab('console --json', { session: sessionName });
     const parsed = JSON.parse(raw);
-    // agent-browser wraps JSON output: {success, data: {messages: [...]}, error}
     const messages = parsed?.data?.messages ?? parsed;
     return Array.isArray(messages) ? messages : [];
   } catch {
@@ -102,9 +112,6 @@ export function getConsoleOutputJson(sessionName?: string): ConsoleMessage[] {
   }
 }
 
-/**
- * Get the current page title.
- */
 export function getPageTitle(sessionName?: string): string {
   try {
     return ab('get title', { session: sessionName });
@@ -113,9 +120,6 @@ export function getPageTitle(sessionName?: string): string {
   }
 }
 
-/**
- * Get the current page URL.
- */
 export function getPageUrl(sessionName?: string): string {
   try {
     return ab('get url', { session: sessionName });
@@ -124,12 +128,11 @@ export function getPageUrl(sessionName?: string): string {
   }
 }
 
-/**
- * Get the current viewport from the page context.
- */
-export function getViewport(): ViewportConfig | null {
+export function getViewport(sessionName?: string): ViewportConfig | null {
   try {
-    const raw = ab("eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'");
+    const raw = ab("eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'", {
+      session: sessionName,
+    });
     const parsed = JSON.parse(raw);
     if (
       typeof parsed?.width === 'number' &&
@@ -159,15 +162,13 @@ export function urlsMatch(expectedUrl: string, actualUrl: string): boolean {
   return normalizeUrlForComparison(expectedUrl) === normalizeUrlForComparison(actualUrl);
 }
 
-/**
- * Read current browser state and fail if it doesn't match the expected URL/viewport.
- */
 export function verifyBrowserState(
   expectedUrl: string,
   expectedViewport: ViewportConfig,
+  sessionName?: string,
 ): BrowserState {
-  const url = getPageUrl();
-  const viewport = getViewport();
+  const url = getPageUrl(sessionName);
+  const viewport = getViewport(sessionName);
 
   if (!url) {
     throw new ProofShotError(

@@ -155,6 +155,18 @@ You can also configure browser launch behavior in `proofshot.config.json`:
 }
 ```
 
+If your environment needs longer waits, you can tune command timeouts in `proofshot.config.json`:
+
+```json
+{
+  "timeouts": {
+    "browserOpenMs": 120000,
+    "execPassthroughMs": 90000,
+    "videoTrimMs": 120000
+  }
+}
+```
+
 After recording starts, ProofShot verifies that the browser is still on the expected URL and viewport. If that state is wrong, it fails early with the observed browser state instead of continuing into misleading screenshots and logs.
 
 ### `proofshot stop`
