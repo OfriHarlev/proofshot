@@ -3,8 +3,8 @@ import chalk from 'chalk';
 import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
 import { ensureDevServer } from '../server/start.js';
-import { openBrowser } from '../browser/session.js';
-import { startRecording } from '../browser/capture.js';
+import { openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
+import { startRecording, stopRecording } from '../browser/capture.js';
 import { ensureOutputDir, generateTimestamp, generateSessionDirName } from '../artifacts/bundle.js';
 import {
   saveSession,
@@ -21,6 +21,18 @@ interface StartOptions {
   headed?: boolean;
   output?: string;
   url?: string;
+}
+
+function formatBrowserState(state: BrowserState | null): string {
+  if (!state) return 'unknown';
+
+  const parts = [`url=${state.url || 'unknown'}`];
+  if (state.viewport) {
+    parts.push(`viewport=${state.viewport.width}x${state.viewport.height}`);
+  } else {
+    parts.push('viewport=unknown');
+  }
+  return parts.join(', ');
 }
 
 export async function startCommand(options: StartOptions): Promise<void> {
@@ -126,16 +138,19 @@ export async function startCommand(options: StartOptions): Promise<void> {
   const RETRY_DELAY_MS = 2000;
   let recordingStarted = false;
   let lastError: any;
+  let lastObservedState: BrowserState | null = null;
 
   for (let attempt = 1; attempt <= RECORDING_RETRIES; attempt++) {
     try {
       startRecording(videoPath, sessionName);
+      lastObservedState = verifyBrowserState(openUrl, config.viewport);
       recordingStarted = true;
       console.log(chalk.green('✓') + ' Recording started');
       break;
     } catch (error: any) {
       lastError = error;
       if (attempt < RECORDING_RETRIES) {
+        stopRecording();
         console.log(
           chalk.yellow('⚠') +
             ` Recording failed (attempt ${attempt}/${RECORDING_RETRIES}), retrying in ${RETRY_DELAY_MS / 1000}s...`,
@@ -150,10 +165,12 @@ export async function startCommand(options: StartOptions): Promise<void> {
       chalk.red('✗') +
         ` Failed to start recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}\n` +
         chalk.dim('Recording is required — ProofShot cannot proceed without video capture.\n') +
+        chalk.dim(`Observed browser state: ${formatBrowserState(lastObservedState)}\n`) +
         chalk.dim('Troubleshooting:\n') +
         chalk.dim('  1. Make sure agent-browser is installed and running\n') +
         chalk.dim('  2. Try "proofshot clean" then re-run "proofshot start"\n') +
-        chalk.dim('  3. If the port was already in use, stop the old server first'),
+        chalk.dim('  3. If the port was already in use, stop the old server first\n') +
+        chalk.dim('  4. If URL or viewport do not match, the recording context may be attached to the wrong page'),
     );
     process.exit(1);
   }

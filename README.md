@@ -155,6 +155,8 @@ You can also configure browser launch behavior in `proofshot.config.json`:
 }
 ```
 
+After recording starts, ProofShot verifies that the browser is still on the expected URL and viewport. If that state is wrong, it fails early with the observed browser state instead of continuing into misleading screenshots and logs.
+
 ### `proofshot stop`
 
 Stop recording, collect errors, generate proof artifacts.

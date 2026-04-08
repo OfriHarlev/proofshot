@@ -10,6 +10,7 @@ After building or modifying UI features, verify with this workflow:
 3. Stop: `proofshot stop` — bundles video, screenshots, and error report
 
 ProofShot keeps all `proofshot exec` commands inside the same isolated `agent-browser` session that was created by `proofshot start`, so recording, screenshots, and browser actions stay aligned.
+ProofShot verifies the active browser URL and viewport immediately after recording starts. If that state is wrong, it fails early instead of continuing into misleading screenshots.
 
 Key proofshot exec commands:
 - `proofshot exec snapshot -i` — see interactive elements
