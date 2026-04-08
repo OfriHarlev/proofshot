@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(),
   ensureDevServer: vi.fn(),
   openBrowser: vi.fn(),
+  applyViewport: vi.fn(),
   closeBrowser: vi.fn(),
   verifyBrowserState: vi.fn(),
   startRecording: vi.fn(),
@@ -30,6 +31,7 @@ vi.mock('../server/start.js', () => ({
 
 vi.mock('../browser/session.js', () => ({
   openBrowser: mocks.openBrowser,
+  applyViewport: mocks.applyViewport,
   closeBrowser: mocks.closeBrowser,
   verifyBrowserState: mocks.verifyBrowserState,
 }));
@@ -119,6 +121,36 @@ describe('startCommand', () => {
     });
     expect(mocks.closeBrowser).toHaveBeenCalledWith('proofshot-2026-04-08_07-28-00');
     expect(mocks.saveSession).not.toHaveBeenCalled();
+  });
+
+  it('reapplies the configured viewport after recording starts before verification', async () => {
+    mocks.verifyBrowserState.mockReturnValue({
+      url: 'http://localhost:3000/',
+      viewport: { width: 1280, height: 720 },
+    });
+
+    await startCommand({});
+
+    expect(mocks.startRecording).toHaveBeenCalledWith(
+      expect.stringContaining('session.webm'),
+      'proofshot-2026-04-08_07-28-00',
+      expect.any(Object),
+    );
+    expect(mocks.applyViewport).toHaveBeenCalledWith(
+      { width: 1280, height: 720 },
+      'proofshot-2026-04-08_07-28-00',
+    );
+    expect(mocks.verifyBrowserState).toHaveBeenCalledWith(
+      'http://localhost:3000',
+      { width: 1280, height: 720 },
+      'proofshot-2026-04-08_07-28-00',
+    );
+    expect(mocks.applyViewport.mock.invocationCallOrder[0]).toBeGreaterThan(
+      mocks.startRecording.mock.invocationCallOrder[0],
+    );
+    expect(mocks.verifyBrowserState.mock.invocationCallOrder[0]).toBeGreaterThan(
+      mocks.applyViewport.mock.invocationCallOrder[0],
+    );
   });
 
   it('does not try to stop recording when recording never started', async () => {

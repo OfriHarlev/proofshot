@@ -58,6 +58,16 @@ describe('getViewport', () => {
 
     expect(getViewport()).toEqual({ width: 1280, height: 720 });
   });
+
+  it('parses double-encoded viewport payloads from agent-browser eval', () => {
+    abMock.mockReturnValueOnce(JSON.stringify(JSON.stringify({ width: 1920, height: 1080 })));
+
+    expect(getViewport('proofshot-dev')).toEqual({ width: 1920, height: 1080 });
+    expect(abMock).toHaveBeenCalledWith(
+      "eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'",
+      { session: 'proofshot-dev' },
+    );
+  });
 });
 
 describe('verifyBrowserState', () => {
