@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
 import { setAgentBrowserDefaults } from '../utils/exec.js';
 import { ensureDevServer } from '../server/start.js';
-import { closeBrowser, openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
+import { applyViewport, closeBrowser, openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
 import { startRecording, stopRecording } from '../browser/capture.js';
 import { ensureOutputDir, generateTimestamp, generateSessionDirName } from '../artifacts/bundle.js';
 import {
@@ -149,6 +149,9 @@ export async function startCommand(options: StartOptions): Promise<void> {
     try {
       startRecording(videoPath, sessionName, config.timeouts);
       recordingAttemptStarted = true;
+      // Recording can reset the active viewport, so reapply the configured
+      // size before validating the page state for the new recording context.
+      applyViewport(config.viewport, sessionName);
       lastObservedState = verifyBrowserState(openUrl, config.viewport, sessionName);
       recordingStarted = true;
       console.log(chalk.green('✓') + ' Recording started');

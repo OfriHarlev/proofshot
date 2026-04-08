@@ -23,6 +23,14 @@ export function buildOpenBrowserCommand(
   return `open ${url}${suffix}`;
 }
 
+export function buildSetViewportCommand(viewport: ViewportConfig): string {
+  const parts = ['set', 'viewport', String(viewport.width), String(viewport.height)];
+  if (viewport.deviceScaleFactor !== undefined) {
+    parts.push(String(viewport.deviceScaleFactor));
+  }
+  return parts.join(' ');
+}
+
 export interface BrowserState {
   url: string;
   viewport: ViewportConfig | null;
@@ -44,7 +52,11 @@ export function openBrowser(
     timeoutMs: timeouts?.browserOpenMs ?? DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
     session: sessionName,
   });
-  ab(`set viewport ${viewport.width} ${viewport.height}`, { session: sessionName });
+  applyViewport(viewport, sessionName);
+}
+
+export function applyViewport(viewport: ViewportConfig, sessionName?: string): void {
+  ab(buildSetViewportCommand(viewport), { session: sessionName });
 }
 
 /**
@@ -133,7 +145,7 @@ export function getViewport(sessionName?: string): ViewportConfig | null {
     const raw = ab("eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'", {
       session: sessionName,
     });
-    const parsed = JSON.parse(raw);
+    const parsed = parseViewportPayload(raw);
     if (
       typeof parsed?.width === 'number' &&
       Number.isFinite(parsed.width) &&
@@ -146,6 +158,14 @@ export function getViewport(sessionName?: string): ViewportConfig | null {
   } catch {
     return null;
   }
+}
+
+function parseViewportPayload(raw: string): unknown {
+  const parsed = JSON.parse(raw);
+  if (typeof parsed === 'string') {
+    return JSON.parse(parsed);
+  }
+  return parsed;
 }
 
 function normalizeUrlForComparison(value: string): string {
