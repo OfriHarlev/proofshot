@@ -16,6 +16,24 @@ export interface BrowserConfig {
   ignoreHttpsErrors: boolean;
 }
 
+export interface TimeoutConfig {
+  browserOpenMs: number;
+  recordingStartMs: number;
+  recordingStopMs: number;
+  screenshotMs: number;
+  execPassthroughMs: number;
+  videoTrimMs: number;
+}
+
+// Keep timeout defaults named and centralized so operational tuning does not
+// rely on unexplained literals spread across the command flow.
+export const DEFAULT_BROWSER_OPEN_TIMEOUT_MS = 60_000;
+export const DEFAULT_RECORDING_START_TIMEOUT_MS = 10_000;
+export const DEFAULT_RECORDING_STOP_TIMEOUT_MS = 15_000;
+export const DEFAULT_SCREENSHOT_TIMEOUT_MS = 15_000;
+export const DEFAULT_EXEC_PASSTHROUGH_TIMEOUT_MS = 60_000;
+export const DEFAULT_VIDEO_TRIM_TIMEOUT_MS = 60_000;
+
 export interface ProofShotConfig {
   devServer: DevServerConfig;
   output: string;
@@ -23,6 +41,7 @@ export interface ProofShotConfig {
   viewport: ViewportConfig;
   headless: boolean;
   browser: BrowserConfig;
+  timeouts: TimeoutConfig;
 }
 
 const CONFIG_FILENAME = 'proofshot.config.json';
@@ -38,6 +57,14 @@ const DEFAULT_CONFIG: ProofShotConfig = {
   headless: true,
   browser: {
     ignoreHttpsErrors: false,
+  },
+  timeouts: {
+    browserOpenMs: DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
+    recordingStartMs: DEFAULT_RECORDING_START_TIMEOUT_MS,
+    recordingStopMs: DEFAULT_RECORDING_STOP_TIMEOUT_MS,
+    screenshotMs: DEFAULT_SCREENSHOT_TIMEOUT_MS,
+    execPassthroughMs: DEFAULT_EXEC_PASSTHROUGH_TIMEOUT_MS,
+    videoTrimMs: DEFAULT_VIDEO_TRIM_TIMEOUT_MS,
   },
 };
 
@@ -71,6 +98,7 @@ export function loadConfig(startDir?: string): ProofShotConfig {
       devServer: { ...DEFAULT_CONFIG.devServer, ...parsed.devServer },
       viewport: { ...DEFAULT_CONFIG.viewport, ...parsed.viewport },
       browser: { ...DEFAULT_CONFIG.browser, ...parsed.browser },
+      timeouts: { ...DEFAULT_CONFIG.timeouts, ...parsed.timeouts },
     };
   } catch {
     return { ...DEFAULT_CONFIG };

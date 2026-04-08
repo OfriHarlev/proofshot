@@ -122,7 +122,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
 
   console.log(chalk.dim('Opening browser...'));
   try {
-    openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser);
+    openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser, config.timeouts);
     console.log(chalk.green('✓') + ' Browser ready');
   } catch (error: any) {
     console.error(
@@ -142,15 +142,15 @@ export async function startCommand(options: StartOptions): Promise<void> {
 
   for (let attempt = 1; attempt <= RECORDING_RETRIES; attempt++) {
     try {
-      startRecording(videoPath, sessionName);
-      lastObservedState = verifyBrowserState(openUrl, config.viewport);
+      startRecording(videoPath, sessionName, config.timeouts);
+      lastObservedState = verifyBrowserState(openUrl, config.viewport, sessionName);
       recordingStarted = true;
       console.log(chalk.green('✓') + ' Recording started');
       break;
     } catch (error: any) {
       lastError = error;
       if (attempt < RECORDING_RETRIES) {
-        stopRecording();
+        stopRecording(sessionName, config.timeouts);
         console.log(
           chalk.yellow('⚠') +
             ` Recording failed (attempt ${attempt}/${RECORDING_RETRIES}), retrying in ${RETRY_DELAY_MS / 1000}s...`,

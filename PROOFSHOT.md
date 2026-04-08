@@ -22,3 +22,4 @@ Artifacts saved to ./proofshot-artifacts/ including video, screenshots, errors, 
 
 Use `proofshot doctor` when the local setup looks wrong. It prints the current config path, browser mode, viewport, installed binaries, and any active ProofShot session.
 You can customize browser launch behavior in `proofshot.config.json`, including HTTPS error ignoring and a custom browser executable path.
+If your environment is slower than the defaults, add a `timeouts` section to `proofshot.config.json` to increase browser open, exec, or video trim timeouts.
