@@ -16,6 +16,11 @@ export function buildOpenBrowserCommand(
   return `open ${url}${suffix}`;
 }
 
+export interface BrowserState {
+  url: string;
+  viewport: ViewportConfig | null;
+}
+
 /**
  * Initialize a browser session.
  * Opens the browser and sets viewport dimensions.
@@ -117,4 +122,76 @@ export function getPageUrl(sessionName?: string): string {
   } catch {
     return '';
   }
+}
+
+/**
+ * Get the current viewport from the page context.
+ */
+export function getViewport(): ViewportConfig | null {
+  try {
+    const raw = ab("eval 'JSON.stringify({width: window.innerWidth, height: window.innerHeight})'");
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed?.width === 'number' &&
+      Number.isFinite(parsed.width) &&
+      typeof parsed?.height === 'number' &&
+      Number.isFinite(parsed.height)
+    ) {
+      return { width: parsed.width, height: parsed.height };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeUrlForComparison(value: string): string {
+  try {
+    const url = new URL(value);
+    const pathname = url.pathname !== '/' ? url.pathname.replace(/\/+$/, '') : '/';
+    return `${url.origin}${pathname}${url.search}`;
+  } catch {
+    return value.trim();
+  }
+}
+
+export function urlsMatch(expectedUrl: string, actualUrl: string): boolean {
+  return normalizeUrlForComparison(expectedUrl) === normalizeUrlForComparison(actualUrl);
+}
+
+/**
+ * Read current browser state and fail if it doesn't match the expected URL/viewport.
+ */
+export function verifyBrowserState(
+  expectedUrl: string,
+  expectedViewport: ViewportConfig,
+): BrowserState {
+  const url = getPageUrl();
+  const viewport = getViewport();
+
+  if (!url) {
+    throw new ProofShotError(
+      'Could not read the current browser URL after recording started. The browser session may not be attached correctly.',
+    );
+  }
+
+  if (!urlsMatch(expectedUrl, url)) {
+    throw new ProofShotError(
+      `Browser navigated to ${url}, expected ${expectedUrl}. Recording may be attached to the wrong page or session.`,
+    );
+  }
+
+  if (!viewport) {
+    throw new ProofShotError(
+      'Could not read the current viewport after recording started. The browser session may not be attached correctly.',
+    );
+  }
+
+  if (viewport.width !== expectedViewport.width || viewport.height !== expectedViewport.height) {
+    throw new ProofShotError(
+      `Browser viewport is ${viewport.width}x${viewport.height}, expected ${expectedViewport.width}x${expectedViewport.height}. Recording may be attached to the wrong page or session.`,
+    );
+  }
+
+  return { url, viewport };
 }
