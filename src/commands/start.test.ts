@@ -119,7 +119,11 @@ describe('startCommand', () => {
     await expect(commandPromise).resolves.toMatchObject({ message: 'process.exit:1' });
     expect(mocks.startRecording).toHaveBeenCalledTimes(3);
     expect(mocks.stopRecording).toHaveBeenCalledTimes(3);
-    expect(mocks.closeBrowser).toHaveBeenCalledTimes(1);
+    expect(mocks.stopRecording).toHaveBeenCalledWith(
+      'proofshot-2026-04-08_07-28-00',
+      testTimeouts,
+    );
+    expect(mocks.closeBrowser).toHaveBeenCalledWith('proofshot-2026-04-08_07-28-00');
     expect(mocks.saveSession).not.toHaveBeenCalled();
   });
 
@@ -164,7 +168,7 @@ describe('startCommand', () => {
     await expect(commandPromise).resolves.toMatchObject({ message: 'process.exit:1' });
     expect(mocks.startRecording).toHaveBeenCalledTimes(3);
     expect(mocks.stopRecording).not.toHaveBeenCalled();
-    expect(mocks.closeBrowser).toHaveBeenCalledTimes(1);
+    expect(mocks.closeBrowser).toHaveBeenCalledWith('proofshot-2026-04-08_07-28-00');
     expect(mocks.saveSession).not.toHaveBeenCalled();
   });
 
@@ -176,7 +180,7 @@ describe('startCommand', () => {
     const commandPromise = startCommand({}).catch((error) => error);
 
     await expect(commandPromise).resolves.toMatchObject({ message: 'process.exit:1' });
-    expect(mocks.closeBrowser).toHaveBeenCalledTimes(1);
+    expect(mocks.closeBrowser).toHaveBeenCalledWith('proofshot-2026-04-08_07-28-00');
     expect(mocks.startRecording).not.toHaveBeenCalled();
     expect(mocks.saveSession).not.toHaveBeenCalled();
   });
