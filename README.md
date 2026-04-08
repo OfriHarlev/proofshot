@@ -149,11 +149,14 @@ You can also configure browser launch behavior in `proofshot.config.json`:
 ```json
 {
   "browser": {
+    "configPath": "./agent-browser.local.json",
     "ignoreHttpsErrors": true,
     "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   }
 }
 ```
+
+Set `browser.configPath` when you need ProofShot to run `agent-browser` against a project-specific config instead of inheriting `~/.agent-browser/config.json`. Relative paths are resolved from the directory that contains `proofshot.config.json`.
 
 If your environment needs longer waits, you can tune command timeouts in `proofshot.config.json`:
 

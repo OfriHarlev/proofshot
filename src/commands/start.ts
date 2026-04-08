@@ -2,6 +2,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
+import { setAgentBrowserDefaults } from '../utils/exec.js';
 import { ensureDevServer } from '../server/start.js';
 import { closeBrowser, openBrowser, verifyBrowserState, type BrowserState } from '../browser/session.js';
 import { startRecording, stopRecording } from '../browser/capture.js';
@@ -37,6 +38,7 @@ function formatBrowserState(state: BrowserState | null): string {
 
 export async function startCommand(options: StartOptions): Promise<void> {
   const config = loadConfig();
+  setAgentBrowserDefaults({ configPath: config.browser.configPath });
   if (options.port) config.devServer.port = options.port;
   if (options.output) config.output = options.output;
   if (options.headed !== undefined) config.headless = !options.headed;

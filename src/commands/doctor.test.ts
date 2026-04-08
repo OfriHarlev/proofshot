@@ -33,6 +33,7 @@ describe('doctorCommand', () => {
       output: './proofshot-artifacts',
       headless: true,
       viewport: { width: 1280, height: 720 },
+      browser: { ignoreHttpsErrors: false },
       devServer: { port: 3000, startupTimeout: 30000 },
       defaultPages: ['/'],
     });

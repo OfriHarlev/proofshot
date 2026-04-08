@@ -12,6 +12,7 @@ export interface ViewportConfig {
 }
 
 export interface BrowserConfig {
+  configPath?: string;
   executablePath?: string;
   ignoreHttpsErrors: boolean;
 }
@@ -92,12 +93,20 @@ export function loadConfig(startDir?: string): ProofShotConfig {
   try {
     const raw = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(raw);
+    const configDir = path.dirname(configPath);
+    const resolvedBrowser = {
+      ...DEFAULT_CONFIG.browser,
+      ...parsed.browser,
+    };
+    if (resolvedBrowser.configPath) {
+      resolvedBrowser.configPath = path.resolve(configDir, resolvedBrowser.configPath);
+    }
     return {
       ...DEFAULT_CONFIG,
       ...parsed,
       devServer: { ...DEFAULT_CONFIG.devServer, ...parsed.devServer },
       viewport: { ...DEFAULT_CONFIG.viewport, ...parsed.viewport },
-      browser: { ...DEFAULT_CONFIG.browser, ...parsed.browser },
+      browser: resolvedBrowser,
       timeouts: { ...DEFAULT_CONFIG.timeouts, ...parsed.timeouts },
     };
   } catch {
