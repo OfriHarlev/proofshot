@@ -11,6 +11,7 @@ After building or modifying UI features, verify with this workflow:
 
 ProofShot keeps all `proofshot exec` commands inside the same isolated `agent-browser` session that was created by `proofshot start`, so recording, screenshots, and browser actions stay aligned.
 ProofShot verifies the active browser URL and viewport immediately after recording starts. If that state is wrong, it fails early instead of continuing into misleading screenshots.
+ProofShot sets viewport size through `agent-browser set viewport <width> <height> [scale]`. If your screenshots need a specific device pixel ratio, configure `viewport.deviceScaleFactor` in `proofshot.config.json`.
 
 Key proofshot exec commands:
 - `proofshot exec snapshot -i` — see interactive elements

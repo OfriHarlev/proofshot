@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildOpenBrowserCommand, getViewport, urlsMatch, verifyBrowserState } from './session.js';
+import {
+  applyViewport,
+  buildOpenBrowserCommand,
+  buildSetViewportCommand,
+  getViewport,
+  urlsMatch,
+  verifyBrowserState,
+} from './session.js';
 
 const { abMock } = vi.hoisted(() => ({
   abMock: vi.fn(),
@@ -33,6 +40,40 @@ describe('buildOpenBrowserCommand', () => {
     ).toBe(
       'open https://localhost:3000 --ignore-https-errors --executable-path "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"',
     );
+  });
+});
+
+describe('buildSetViewportCommand', () => {
+  it('builds a viewport command with width and height', () => {
+    expect(buildSetViewportCommand({ width: 1920, height: 1080 })).toBe('set viewport 1920 1080');
+  });
+
+  it('includes device scale factor when configured', () => {
+    expect(buildSetViewportCommand({ width: 1920, height: 1080, deviceScaleFactor: 1 })).toBe(
+      'set viewport 1920 1080 1',
+    );
+  });
+});
+
+describe('applyViewport', () => {
+  beforeEach(() => {
+    abMock.mockReset();
+  });
+
+  it('applies the configured viewport in the active session', () => {
+    applyViewport({ width: 1920, height: 1080 }, 'proofshot-dev');
+
+    expect(abMock).toHaveBeenCalledWith('set viewport 1920 1080', {
+      session: 'proofshot-dev',
+    });
+  });
+
+  it('passes through device scale factor when configured', () => {
+    applyViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 }, 'proofshot-dev');
+
+    expect(abMock).toHaveBeenCalledWith('set viewport 1920 1080 1', {
+      session: 'proofshot-dev',
+    });
   });
 });
 

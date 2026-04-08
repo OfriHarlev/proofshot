@@ -167,6 +167,18 @@ If your environment needs longer waits, you can tune command timeouts in `proofs
 }
 ```
 
+ProofShot applies browser viewport changes through `agent-browser set viewport <width> <height> [scale]`. If you need to override the default device pixel ratio, add `deviceScaleFactor` to the viewport config:
+
+```json
+{
+  "viewport": {
+    "width": 1920,
+    "height": 1080,
+    "deviceScaleFactor": 1
+  }
+}
+```
+
 After recording starts, ProofShot verifies that the browser is still on the expected URL and viewport. If that state is wrong, it fails early with the observed browser state instead of continuing into misleading screenshots and logs.
 
 ### `proofshot stop`

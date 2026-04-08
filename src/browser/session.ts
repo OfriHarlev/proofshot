@@ -23,6 +23,14 @@ export function buildOpenBrowserCommand(
   return `open ${url}${suffix}`;
 }
 
+export function buildSetViewportCommand(viewport: ViewportConfig): string {
+  const parts = ['set', 'viewport', String(viewport.width), String(viewport.height)];
+  if (viewport.deviceScaleFactor !== undefined) {
+    parts.push(String(viewport.deviceScaleFactor));
+  }
+  return parts.join(' ');
+}
+
 export interface BrowserState {
   url: string;
   viewport: ViewportConfig | null;
@@ -44,7 +52,14 @@ export function openBrowser(
     timeoutMs: timeouts?.browserOpenMs ?? DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
     session: sessionName,
   });
-  ab(`set viewport ${viewport.width} ${viewport.height}`, { session: sessionName });
+  applyViewport(viewport, sessionName);
+}
+
+/**
+ * Apply the configured browser viewport to the active session.
+ */
+export function applyViewport(viewport: ViewportConfig, sessionName?: string): void {
+  ab(buildSetViewportCommand(viewport), { session: sessionName });
 }
 
 /**
