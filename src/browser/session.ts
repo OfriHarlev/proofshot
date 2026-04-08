@@ -1,5 +1,10 @@
 import { ab, ProofShotError } from '../utils/exec.js';
-import type { BrowserConfig, ViewportConfig } from '../utils/config.js';
+import {
+  DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
+  type BrowserConfig,
+  type TimeoutConfig,
+  type ViewportConfig,
+} from '../utils/config.js';
 
 export function buildOpenBrowserCommand(
   url: string,
@@ -15,7 +20,6 @@ export function buildOpenBrowserCommand(
   const suffix = flags.length > 0 ? ` ${flags.join(' ')}` : '';
   return `open ${url}${suffix}`;
 }
-
 export interface BrowserState {
   url: string;
   viewport: ViewportConfig | null;
@@ -27,8 +31,12 @@ export function openBrowser(
   headless = true,
   sessionName?: string,
   browserConfig?: BrowserConfig,
+  timeouts?: TimeoutConfig,
 ): void {
-  ab(buildOpenBrowserCommand(url, headless, browserConfig), { timeoutMs: 60000, session: sessionName });
+  ab(buildOpenBrowserCommand(url, headless, browserConfig), {
+    timeoutMs: timeouts?.browserOpenMs ?? DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
+    session: sessionName,
+  });
   applyViewport(viewport, sessionName);
 }
 

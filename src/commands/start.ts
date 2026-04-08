@@ -123,7 +123,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
 
   console.log(chalk.dim('Opening browser...'));
   try {
-    openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser);
+    openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser, config.timeouts);
     console.log(chalk.green('✓') + ' Browser ready');
   } catch (error: any) {
     closeBrowser();
@@ -145,7 +145,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
     let recordingAttemptStarted = false;
 
     try {
-      startRecording(videoPath, sessionName);
+      startRecording(videoPath, sessionName, config.timeouts);
       recordingAttemptStarted = true;
       applyViewport(config.viewport, sessionName);
       lastObservedState = verifyBrowserState(openUrl, config.viewport, sessionName);

@@ -62,6 +62,15 @@ vi.mock('child_process', () => ({
   execSync: mocks.execSync,
 }));
 
+const testTimeouts = {
+  browserOpenMs: 60_000,
+  recordingStartMs: 10_000,
+  recordingStopMs: 15_000,
+  screenshotMs: 15_000,
+  execPassthroughMs: 60_000,
+  videoTrimMs: 60_000,
+};
+
 describe('startCommand', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -76,6 +85,7 @@ describe('startCommand', () => {
       headless: true,
       viewport: { width: 1280, height: 720 },
       browser: {},
+      timeouts: testTimeouts,
       devServer: {
         port: 3000,
         startupTimeout: 1000,
@@ -124,6 +134,7 @@ describe('startCommand', () => {
     expect(mocks.startRecording).toHaveBeenCalledWith(
       expect.stringContaining('session.webm'),
       'proofshot-2026-04-08_07-28-00',
+      testTimeouts,
     );
     expect(mocks.applyViewport).toHaveBeenCalledWith(
       { width: 1280, height: 720 },
