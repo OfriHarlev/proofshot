@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { execSync } from 'child_process';
 import { loadConfig } from '../utils/config.js';
 import { ensureDevServer } from '../server/start.js';
-import { openBrowser } from '../browser/session.js';
+import { closeBrowser, openBrowser } from '../browser/session.js';
 import { startRecording } from '../browser/capture.js';
 import { ensureOutputDir, generateTimestamp, generateSessionDirName } from '../artifacts/bundle.js';
 import {
@@ -21,6 +21,7 @@ interface StartOptions {
   headed?: boolean;
   output?: string;
   url?: string;
+  force?: boolean;
 }
 
 export async function startCommand(options: StartOptions): Promise<void> {
@@ -52,10 +53,9 @@ export async function startCommand(options: StartOptions): Promise<void> {
   const sessionName = generateAgentBrowserSessionName(timestamp);
   ensureOutputDir(sessionDir);
 
-  const videoPath = path.join(sessionDir, `session.webm`);
+  const videoPath = path.join(sessionDir, 'session.webm');
   const serverErrorLog = path.join(sessionDir, 'server.log');
 
-  // Capture git metadata for branch-based PR matching
   let branch = '';
   let commitSha = '';
   try {
@@ -64,7 +64,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
   } catch {
-    // Not in a git repo or git not available — non-fatal
+    // Non-fatal outside a git repo.
   }
   try {
     commitSha = execSync('git rev-parse HEAD', {
@@ -72,10 +72,9 @@ export async function startCommand(options: StartOptions): Promise<void> {
       stdio: ['pipe', 'pipe', 'pipe'],
     }).trim();
   } catch {
-    // Non-fatal
+    // Non-fatal outside a git repo.
   }
 
-  // Write persistent metadata (survives proofshot stop)
   writeMetadata(sessionDir, {
     branch,
     commitSha,
@@ -113,6 +112,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
     openBrowser(openUrl, config.viewport, config.headless, sessionName);
     console.log(chalk.green('✓') + ' Browser ready');
   } catch (error: any) {
+    closeBrowser();
     console.error(
       chalk.red('✗') +
         ` Failed to open browser: ${error.message}\n` +
@@ -121,7 +121,6 @@ export async function startCommand(options: StartOptions): Promise<void> {
     process.exit(1);
   }
 
-  // Recording is mandatory — retry up to 3 times for transient failures (browser not ready, etc.)
   const RECORDING_RETRIES = 3;
   const RETRY_DELAY_MS = 2000;
   let recordingStarted = false;
@@ -146,9 +145,10 @@ export async function startCommand(options: StartOptions): Promise<void> {
   }
 
   if (!recordingStarted) {
+    closeBrowser();
     console.error(
       chalk.red('✗') +
-        ` Failed to start recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}\n` +
+        ` Failed to initialize recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}\n` +
         chalk.dim('Recording is required — ProofShot cannot proceed without video capture.\n') +
         chalk.dim('Troubleshooting:\n') +
         chalk.dim('  1. Make sure agent-browser is installed and running\n') +
