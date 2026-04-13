@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/AmElmo/proofshot/compare/v1.4.0...v1.4.1) (2026-04-13)
+
+### Bug Fixes
+
+* clean up failed startup sessions ([#37](https://github.com/AmElmo/proofshot/issues/37)) ([08c8176](https://github.com/AmElmo/proofshot/commit/08c81766638e725dd633d6c6e9798395266b3f2e))
+* isolate each ProofShot run in one agent-browser session ([#36](https://github.com/AmElmo/proofshot/issues/36)) ([73be65d](https://github.com/AmElmo/proofshot/commit/73be65d6f2511279559dab5b3425ada216cbf28f))
+
 ## [1.4.0](https://github.com/AmElmo/proofshot/compare/v1.3.5...v1.4.0) (2026-04-12)
 
 ### Features
