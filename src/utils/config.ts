@@ -11,12 +11,19 @@ export interface ViewportConfig {
   height: number;
 }
 
+export interface BrowserConfig {
+  configPath?: string;
+  executablePath?: string;
+  ignoreHttpsErrors: boolean;
+}
+
 export interface ProofShotConfig {
   devServer: DevServerConfig;
   output: string;
   defaultPages: string[];
   viewport: ViewportConfig;
   headless: boolean;
+  browser: BrowserConfig;
 }
 
 const CONFIG_FILENAME = 'proofshot.config.json';
@@ -30,6 +37,9 @@ const DEFAULT_CONFIG: ProofShotConfig = {
   defaultPages: ['/'],
   viewport: { width: 1280, height: 720 },
   headless: true,
+  browser: {
+    ignoreHttpsErrors: false,
+  },
 };
 
 /**
@@ -56,11 +66,20 @@ export function loadConfig(startDir?: string): ProofShotConfig {
   try {
     const raw = fs.readFileSync(configPath, 'utf-8');
     const parsed = JSON.parse(raw);
+    const configDir = path.dirname(configPath);
+    const resolvedBrowser = {
+      ...DEFAULT_CONFIG.browser,
+      ...parsed.browser,
+    };
+    if (resolvedBrowser.configPath) {
+      resolvedBrowser.configPath = path.resolve(configDir, resolvedBrowser.configPath);
+    }
     return {
       ...DEFAULT_CONFIG,
       ...parsed,
       devServer: { ...DEFAULT_CONFIG.devServer, ...parsed.devServer },
       viewport: { ...DEFAULT_CONFIG.viewport, ...parsed.viewport },
+      browser: resolvedBrowser,
     };
   } catch {
     return { ...DEFAULT_CONFIG };

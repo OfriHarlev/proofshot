@@ -1,5 +1,20 @@
 import { ab, ProofShotError } from '../utils/exec.js';
-import type { ViewportConfig } from '../utils/config.js';
+import type { BrowserConfig, ViewportConfig } from '../utils/config.js';
+
+export function buildOpenBrowserCommand(
+  url: string,
+  headless = true,
+  browserConfig?: BrowserConfig,
+): string {
+  const flags: string[] = [];
+
+  if (!headless) flags.push('--headed');
+  if (browserConfig?.ignoreHttpsErrors) flags.push('--ignore-https-errors');
+  if (browserConfig?.executablePath) flags.push(`--executable-path "${browserConfig.executablePath.replace(/"/g, '\\"')}"`);
+
+  const suffix = flags.length > 0 ? ` ${flags.join(' ')}` : '';
+  return `open ${url}${suffix}`;
+}
 
 /**
  * Initialize a browser session.
@@ -10,9 +25,9 @@ export function openBrowser(
   viewport: ViewportConfig,
   headless = true,
   sessionName?: string,
+  browserConfig?: BrowserConfig,
 ): void {
-  const headlessFlag = headless ? '' : ' --headed';
-  ab(`open ${url}${headlessFlag}`, { timeoutMs: 60000, session: sessionName });
+  ab(buildOpenBrowserCommand(url, headless, browserConfig), { timeoutMs: 60000, session: sessionName });
   ab(`set viewport ${viewport.width} ${viewport.height}`, { session: sessionName });
 }
 
