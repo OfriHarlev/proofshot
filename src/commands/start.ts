@@ -126,7 +126,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
     openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser, config.timeouts);
     console.log(chalk.green('✓') + ' Browser ready');
   } catch (error: any) {
-    closeBrowser();
+    closeBrowser(sessionName);
     console.error(
       chalk.red('✗') +
         ` Failed to open browser: ${error.message}\n` +
@@ -147,6 +147,8 @@ export async function startCommand(options: StartOptions): Promise<void> {
     try {
       startRecording(videoPath, sessionName, config.timeouts);
       recordingAttemptStarted = true;
+      // Reapply the requested viewport after recording starts so the recording
+      // context and the interactive session stay aligned.
       applyViewport(config.viewport, sessionName);
       lastObservedState = verifyBrowserState(openUrl, config.viewport, sessionName);
       recordingStarted = true;
@@ -155,7 +157,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
     } catch (error: any) {
       lastError = error;
       if (recordingAttemptStarted) {
-        stopRecording(sessionName);
+        stopRecording(sessionName, config.timeouts);
       }
       if (attempt < RECORDING_RETRIES) {
         console.log(
@@ -168,7 +170,7 @@ export async function startCommand(options: StartOptions): Promise<void> {
   }
 
   if (!recordingStarted) {
-    closeBrowser();
+    closeBrowser(sessionName);
     console.error(
       chalk.red('✗') +
         ` Failed to initialize recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}\n` +

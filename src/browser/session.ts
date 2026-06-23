@@ -20,6 +20,16 @@ export function buildOpenBrowserCommand(
   const suffix = flags.length > 0 ? ` ${flags.join(' ')}` : '';
   return `open ${url}${suffix}`;
 }
+
+export function buildSetViewportCommand(viewport: ViewportConfig): string {
+  const parts = ['set', 'viewport', String(viewport.width), String(viewport.height)];
+  const scale = viewport.deviceScaleFactor;
+  if (typeof scale === 'number' && Number.isFinite(scale)) {
+    parts.push(String(scale));
+  }
+  return parts.join(' ');
+}
+
 export interface BrowserState {
   url: string;
   viewport: ViewportConfig | null;
@@ -41,9 +51,7 @@ export function openBrowser(
 }
 
 export function applyViewport(viewport: ViewportConfig, sessionName?: string): void {
-  const scale = viewport.deviceScaleFactor;
-  const suffix = typeof scale === 'number' && Number.isFinite(scale) ? ` ${scale}` : '';
-  ab(`set viewport ${viewport.width} ${viewport.height}${suffix}`, { session: sessionName });
+  ab(buildSetViewportCommand(viewport), { session: sessionName });
 }
 
 export function closeBrowser(sessionName?: string): void {

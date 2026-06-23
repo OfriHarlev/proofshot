@@ -819,6 +819,14 @@ function buildOpenBrowserCommand(url, headless = true, browserConfig) {
   const suffix = flags.length > 0 ? ` ${flags.join(" ")}` : "";
   return `open ${url}${suffix}`;
 }
+function buildSetViewportCommand(viewport) {
+  const parts = ["set", "viewport", String(viewport.width), String(viewport.height)];
+  const scale = viewport.deviceScaleFactor;
+  if (typeof scale === "number" && Number.isFinite(scale)) {
+    parts.push(String(scale));
+  }
+  return parts.join(" ");
+}
 function openBrowser(url, viewport, headless = true, sessionName, browserConfig, timeouts) {
   ab(buildOpenBrowserCommand(url, headless, browserConfig), {
     timeoutMs: timeouts?.browserOpenMs ?? DEFAULT_BROWSER_OPEN_TIMEOUT_MS,
@@ -827,9 +835,7 @@ function openBrowser(url, viewport, headless = true, sessionName, browserConfig,
   applyViewport(viewport, sessionName);
 }
 function applyViewport(viewport, sessionName) {
-  const scale = viewport.deviceScaleFactor;
-  const suffix = typeof scale === "number" && Number.isFinite(scale) ? ` ${scale}` : "";
-  ab(`set viewport ${viewport.width} ${viewport.height}${suffix}`, { session: sessionName });
+  ab(buildSetViewportCommand(viewport), { session: sessionName });
 }
 function closeBrowser(sessionName) {
   try {
@@ -1120,7 +1126,7 @@ async function startCommand(options) {
     openBrowser(openUrl, config.viewport, config.headless, sessionName, config.browser, config.timeouts);
     console.log(chalk2.green("\u2713") + " Browser ready");
   } catch (error) {
-    closeBrowser();
+    closeBrowser(sessionName);
     console.error(
       chalk2.red("\u2717") + ` Failed to open browser: ${error.message}
 ` + chalk2.dim("Make sure agent-browser is installed: npm install -g agent-browser")
@@ -1145,7 +1151,7 @@ async function startCommand(options) {
     } catch (error) {
       lastError = error;
       if (recordingAttemptStarted) {
-        stopRecording(sessionName);
+        stopRecording(sessionName, config.timeouts);
       }
       if (attempt < RECORDING_RETRIES) {
         console.log(
@@ -1156,7 +1162,7 @@ async function startCommand(options) {
     }
   }
   if (!recordingStarted) {
-    closeBrowser();
+    closeBrowser(sessionName);
     console.error(
       chalk2.red("\u2717") + ` Failed to initialize recording after ${RECORDING_RETRIES} attempts: ${lastError?.message}
 ` + chalk2.dim("Recording is required \u2014 ProofShot cannot proceed without video capture.\n") + chalk2.dim(`Observed browser state: ${formatBrowserState(lastObservedState)}
