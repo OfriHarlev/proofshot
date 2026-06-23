@@ -3,9 +3,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AmElmo/proofshot/stargazers"><img src="https://img.shields.io/github/stars/AmElmo/proofshot?style=flat&color=f5c542" alt="GitHub stars"></a>
+  <a href="https://github.com/OfriHarlev/proofshot/stargazers"><img src="https://img.shields.io/github/stars/OfriHarlev/proofshot?style=flat&color=f5c542" alt="GitHub stars"></a>
   <a href="https://www.npmjs.com/package/proofshot"><img src="https://img.shields.io/npm/v/proofshot?color=0ea5e9" alt="npm version"></a>
-  <a href="https://github.com/AmElmo/proofshot/blob/main/LICENSE"><img src="https://img.shields.io/github/license/AmElmo/proofshot" alt="license"></a>
+  <a href="https://github.com/OfriHarlev/proofshot/blob/main/LICENSE"><img src="https://img.shields.io/github/license/OfriHarlev/proofshot" alt="license"></a>
   <a href="https://www.npmjs.com/package/proofshot"><img src="https://img.shields.io/npm/dm/proofshot?color=6366f1" alt="downloads"></a>
 </p>
 
@@ -251,7 +251,7 @@ All skills install at **user level** — no per-project configuration needed.
 The repo includes sample apps so you can see ProofShot in action without your own project.
 
 ```bash
-git clone https://github.com/AmElmo/proofshot.git
+git clone https://github.com/OfriHarlev/proofshot.git
 cd proofshot
 npm install && npm run build && npm link
 
