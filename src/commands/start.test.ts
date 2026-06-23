@@ -165,6 +165,7 @@ describe('startCommand', () => {
     expect(mocks.startRecording).toHaveBeenCalledTimes(3);
     expect(mocks.stopRecording).not.toHaveBeenCalled();
     expect(mocks.closeBrowser).toHaveBeenCalledTimes(1);
+    expect(mocks.saveSession).not.toHaveBeenCalled();
   });
 
   it('closes the browser when browser open fails', async () => {
